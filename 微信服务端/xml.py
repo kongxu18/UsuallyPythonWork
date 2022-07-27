@@ -1,0 +1,2 @@
+s = b'<xml><ToUserName><![CDATA[gh_ac5b199867a0]]></ToUserName>\n<FromUserName><![CDATA[oCRsx6dGYcw-j4D_VEGax6h3tJZU]]></FromUserName>\n<CreateTime>1638776170</CreateTime>\n<MsgType><![CDATA[event]]></MsgType>\n<Event><![CDATA[subscribe]]></Event>\n<EventKey><![CDATA[]]></EventKey>\n</xml>'
+print(s.decode())

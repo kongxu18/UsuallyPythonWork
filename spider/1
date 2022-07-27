@@ -1,0 +1,8 @@
+
+'headers':
+  {':authority': 'www.xe.com',
+  ':method': 'GET',
+  ':path': '/api/protected/charting-rates/?fromCurrency=USD&toCurrency=EUR',
+  ':scheme': 'https', 'accept': '*/*',
+  'accept-encoding': 'gzip, deflate, br',
+  'accept-language': 'en-US', 'authorization': 'Basic bG9kZXN0YXI6eDRBZE9MaENEbHQ3TkNLV25sTlhIUXlQTzMzZVo0R00=', 'cookie': 'optimizelyEndUserId=oeu1617779814346r0.697331836813863; amp_470887=tCAM3HEVmcaWwdc4d0E3-6...1f2lj1sji.1f2lj1sjp.1.1.2', 'referer': 'https://www.xe.com/currencyconverter/', 'sec-fetch-dest': 'empty', 'sec-fetch-mode': 'cors', 'sec-fetch-site': 'same-origin', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/89.0.4389.114 Safari/537.36'}, 'requestId': '46904.224'}}

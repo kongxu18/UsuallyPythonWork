@@ -1,0 +1,18 @@
+1630483726755	geckodriver	INFO	Listening on 127.0.0.1:54715
+1630483727799	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "--marionette" "-foreground" "-no-remote" "-profile" "/var/folders/lv/ml9pjdzj2s3_s1fc7vsh72nc0000gn/T/rust_mozprofile8hfyUS"
+2021-09-01 16:08:50.201 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSButton: 0x12f29a800>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+2021-09-01 16:08:50.201 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSButton: 0x149181c00>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+2021-09-01 16:08:50.202 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSButton: 0x149183000>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+2021-09-01 16:08:50.202 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSButton: 0x149181400>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+2021-09-01 16:08:50.203 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSButton: 0x149182400>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+2021-09-01 16:08:50.204 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSPopoverTouchBarItemButton: 0x149182c00>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+2021-09-01 16:08:50.205 firefox-bin[41669:2013836] Warning: Expected min height of view: (<NSPopoverTouchBarItemButton: 0x14970e000>) to be less than or equal to 30 but got a height of 32.000000. This error will be logged once per view in violation.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1630483732326	Marionette	INFO	Listening on port 54726
+1630483732387	Marionette	WARN	TLS certificate errors will be ignored for this session
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
+1630565113457	Marionette	INFO	Stopped listening on port 54726
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
