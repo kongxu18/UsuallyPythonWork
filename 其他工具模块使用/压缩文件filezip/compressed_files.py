@@ -1,6 +1,7 @@
 import zipfile, os
 from typing import List, Dict
 from zipfile import ZIP_STORED, ZIP_DEFLATED
+import json
 
 
 class FileZipHelper(object):
@@ -63,10 +64,24 @@ class Zip(object):
 
 
 if __name__ == '__main__':
-    args1 = ['output/1.txt', 'output/2.txt', 'output/3.jpg', 'output/4.txt', 'output/5.txt']
-    args2 = ['1_.txt', '2_2.txt', '3_3.jpg', '4_.txt']
-    args3 = 'output/t.zip'
 
-    deal = FileZipHelper(args1, args2, args3)
-    deal.start()
-    print(deal.err)
+    json_config_path = 'output/config.json'
+    json_config: Dict = {}
+    with open(json_config_path, 'r', encoding='utf8') as f:
+        try:
+            json_config = json.load(f)
+        except Exception as err:
+            print('err', str(err))
+
+    if json_config:
+        zipPath = json_config.get('zipPath')
+        file_li = json_config.get('files')
+        file_path_li = []
+        file_name_li = []
+        for item in file_li:
+            file_name_li.append(item.get('name'))
+            file_path_li.append(item.get('path'))
+
+        deal = FileZipHelper(file_path_li, file_name_li, zipPath)
+        deal.start()
+        print(deal.err)

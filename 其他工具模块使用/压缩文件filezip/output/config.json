@@ -1,0 +1,13 @@
+{
+  "zipPath": "output/t.zip",
+  "files": [
+    {
+      "name": "fileA.txt",
+      "path": "output/1.txt"
+    },
+    {
+      "name": "fileB.txt",
+      "path": "output/1.txt"
+    }
+  ]
+}
