@@ -13,6 +13,15 @@ def array_plus(array_input):
     return plus_plus
 
 
-if __name__ == '__main__':
-    array = [1,2,3,4,5,6]
-    array_plus(array)
+class A:
+
+    @classmethod
+    def fun(cls):
+        print(cls)
+
+a = A()
+a.fun()
+A.fun()
+# if __name__ == '__main__':
+#     array = [1,2,3,4,5,6]
+#     array_plus(array)

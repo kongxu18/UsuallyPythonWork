@@ -1,5 +1,11 @@
 import cv2
 from typing import List, Tuple, AnyStr
+from PIL import Image, ImageDraw, ImageFont
+from .settings import FONTPATH
+import numpy as np
+from .base import Canvas
+import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
 
 class Word(object):
@@ -7,7 +13,7 @@ class Word(object):
         self.canvas = None
         self.word: AnyStr = kwargs.get('word')
         self.anchor: Tuple[int] = kwargs.get('anchor')
-        self.font = kwargs.get('font')
+
         self.color: Tuple[int] = kwargs.get('color')
 
         # 图像数据圆点的位置，默认位于左上角。若参数选择True, 则原点位于左下角
@@ -17,8 +23,17 @@ class Word(object):
         self.size: float = kwargs.get('size')
         # 字体粗细
         self.thickness: float = kwargs.get('thickness')
-
+        self.font = kwargs.get('font')
+        kwargs.pop('china', None)
         self._process_args(*args, **kwargs)
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs.pop('china', False):
+            """
+            表示这个word 是中文
+            """
+            return super().__new__(ChinaWord)
+        return super().__new__(cls)
 
     def _process_args(self, *args, **kwargs):
         if args:
@@ -40,13 +55,50 @@ class Word(object):
         if hasattr(self, 'canvas'):
             """
             这里已经把画布传入
-            添加直线
             """
             try:
+                print(self.word, 'word')
                 res = cv2.putText(self.canvas, text=self.word, org=self.anchor, fontFace=self.font,
                                   fontScale=self.size, color=self.color, thickness=self.thickness,
                                   lineType=cv2.LINE_AA, bottomLeftOrigin=self.bottomLeftOrigin)
             except Exception as err:
-                # print(self.start_point, self.end_point, self.color, self.thickness, '-----')
                 print('绘制箭头直线参数错误', err)
+        return res
+
+
+class ChinaWord(Word):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.font = FONTPATH if not kwargs.get('font') else kwargs.get('font')
+
+    def add(self):
+        # 中文对add 方法进行重写
+        res = self.canvas
+        if hasattr(self, 'canvas'):
+            try:
+                # # cv2读取图片
+                # cv2img = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2RGB)  # cv2和PIL中颜色的hex码的储存顺序不同
+                # pill_img = Image.fromarray(cv2img)
+                #
+                # img = plt.show()
+                # print(img,'dadas')
+                #
+                # handle = ImageDraw.Draw(pill_img)
+                # print(self.size)
+                # font = ImageFont.truetype(self.font, self.size, encoding='utf-8')
+                #
+                # handle.text(self.anchor,self.word,self.color,font=font)
+                #
+                # # PIL图片转cv2 图片
+                # res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
+                print(self.canvas.shape)
+                height, width = self.canvas.shape
+                dpi = 300
+                fig, axes = plt.subplots()
+                plt.show()
+
+
+            except Exception as err:
+
+                print('绘制文字参数错误', err)
         return res

@@ -5,6 +5,7 @@ from .settings import IMREAD_COLOR
 from .base import BackGround, Canvas
 from .line import Line, ArrowLine
 from .circle import Circle
+from .word import Word
 
 
 class Draw(object):
@@ -40,13 +41,7 @@ class Draw(object):
         """
         增加线条
         """
-        line = Line(*args, **kwargs)
-        setattr(line, 'canvas', self.background)
-        if hasattr(line, 'add'):
-            try:
-                self.background = line.add()
-            except Exception as err:
-                print(err)
+        DrawBuilder(self, typeFun='line').add_somethings(*args, **kwargs)
 
     def add_lines(self, line_list):
         for line in line_list:
@@ -56,34 +51,34 @@ class Draw(object):
         """
         增加圆形
         """
-        circle = Circle(*args, **kwargs)
-        setattr(circle, 'canvas', self.background)
-        if hasattr(circle, 'add'):
-            try:
-                self.background = circle.add()
-            except Exception as err:
-                print(err)
+        DrawBuilder(self, typeFun='circle').add_somethings(*args, **kwargs)
 
     def add_circles(self):
         ...
 
-    def add_word(self):
-        ...
+    def add_word(self, *args, **kwargs):
+        """
+        word: AnyStr
+        anchor: Tuple[int]
+        color: Tuple[int]
+        bottomLeftOrigin: bool :图像数据圆点的位置，默认位于左上角。若参数选择True, 则原点位于左下角
 
-    def add_words(self):
+        以下需要 关键字传参数，也可以不传，有默认值
+        font : 字体
+        size: float:位置传参数,字体大小
+        thickness: float :字体粗细
+        china : bool
+        """
+        DrawBuilder(self, typeFun='word').add_somethings(*args, **kwargs)
+
+    def add_words(self, word_list: list):
         ...
 
     def add_arrow(self, *args, **kwargs):
         """
         添加直线箭头
         """
-        arrow = ArrowLine(*args, **kwargs)
-        setattr(arrow, 'canvas', self.background)
-        if hasattr(arrow, 'add'):
-            try:
-                self.background = arrow.add()
-            except Exception as err:
-                print(err)
+        DrawBuilder(self, typeFun='arrow').add_somethings(*args, **kwargs)
 
     def add_arrows(self):
         ...
@@ -94,9 +89,32 @@ class Draw(object):
 
 
 class DrawBuilder(object):
-    def add(self):
-        ...
+    COMPONENTS = {
+        'word': Word,
+        'line': Line,
+        'circle': Circle,
+        'arrow': ArrowLine
+    }
 
+    def __init__(self, draw, typeFun=None):
+        self.__draw = draw
+        self.typeFun = typeFun
+
+    def add_somethings(self, *args, **kwargs):
+        if self.typeFun in DrawBuilder.COMPONENTS:
+            obj = DrawBuilder.COMPONENTS.get(self.typeFun)
+            if not obj:
+                raise ValueError('不要试图使用不存在的方法')
+            living_example = obj(*args, **kwargs)
+            print(type(living_example), '对象')
+            background = getattr(self.__draw, 'background')
+            setattr(living_example, 'canvas', background)
+            if hasattr(living_example, 'add'):
+                try:
+                    setattr(self.__draw, 'background', living_example.add())
+                    # return living_example.add()
+                except Exception as err:
+                    print(err,'99')
 
 
 if __name__ == '__main__':

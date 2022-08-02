@@ -4,14 +4,16 @@ import cv2
 
 draw = Draw()
 
-draw.add_line(((0, 0), (720, 720)), Colour.RED, 8)
-draw.add_circle((200, 200), 30, (32, 32, 32), thickness=1)
-draw.add_arrow(((50, 50), (50, 100)), Colour.BLUE, tipLength=0.2)
+# draw.add_line(((0, 0), (720, 720)), Colour.RED, 8)
+# draw.add_circle((200, 200), 30, (32, 32, 32), thickness=1)
+# draw.add_arrow(((50, 50), (50, 100)), Colour.BLUE, tipLength=0.2)
 
-draw.add_word()
+draw.add_word('123中文', (100, 500), Colour.BLACK, size=55,china =True)
+
+
 cv2.imshow('image', draw.background)
 cv2.waitKey(0)
-print(draw.background)
+# print(draw.background)
 
 if __name__ == '__main__':
     ...
