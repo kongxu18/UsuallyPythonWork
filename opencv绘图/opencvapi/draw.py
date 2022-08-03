@@ -3,9 +3,10 @@ import cv2
 from .settings import BACKGROUND_HEIGHT, BACKGROUND_WIDTH
 from .settings import IMREAD_COLOR
 from .base import BackGround, Canvas
-from .line import Line, ArrowLine
+from .line import Line, ArrowLine,Rectangle
 from .circle import Circle
 from .word import Word
+from . import components
 
 
 class Draw(object):
@@ -14,7 +15,7 @@ class Draw(object):
         self.width = kwargs.get('width')
         self.height = kwargs.get('height')
         self.flags = IMREAD_COLOR
-        self.components = []
+        self.components = components
         self._process_args()
 
     def _canvas(self, *args):
@@ -36,6 +37,7 @@ class Draw(object):
             self.height = BACKGROUND_HEIGHT
         arg = {'path': self.path, 'width': self.width, 'height': self.height}
         self.background = self._canvas(arg)
+        setattr(self.components, 'DrawLiving', self)
 
     def add_line(self, *args, **kwargs):
         """
@@ -46,6 +48,12 @@ class Draw(object):
     def add_lines(self, line_list):
         for line in line_list:
             self.add_line(line)
+
+    def add_rectangle(self, *args, **kwargs):
+        """
+        长方形
+        """
+        DrawBuilder(self, typeFun='rectangle').add_somethings(*args, **kwargs)
 
     def add_circle(self, *args, **kwargs):
         """
@@ -93,7 +101,8 @@ class DrawBuilder(object):
         'word': Word,
         'line': Line,
         'circle': Circle,
-        'arrow': ArrowLine
+        'arrow': ArrowLine,
+        'rectangle':Rectangle
     }
 
     def __init__(self, draw, typeFun=None):
@@ -106,15 +115,15 @@ class DrawBuilder(object):
             if not obj:
                 raise ValueError('不要试图使用不存在的方法')
             living_example = obj(*args, **kwargs)
-            print(type(living_example), '对象')
-            background = getattr(self.__draw, 'background')
+            # print(type(living_example), '对象')
+            background = getattr(self.__draw, 'background', None)
             setattr(living_example, 'canvas', background)
             if hasattr(living_example, 'add'):
                 try:
                     setattr(self.__draw, 'background', living_example.add())
                     # return living_example.add()
                 except Exception as err:
-                    print(err,'99')
+                    print(err, '99')
 
 
 if __name__ == '__main__':

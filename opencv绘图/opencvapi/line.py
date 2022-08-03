@@ -1,30 +1,37 @@
 import cv2
+from .funs import coordinate_converter, resize_args
+from .settings import Colour
 
 
 class Line:
     def __init__(self, *args, **kwargs):
+
         self.canvas = None
-        self.start_point, self.end_point = \
-            kwargs.get('start_point'), kwargs.get('end_point')
-        self.anchor = (self.start_point, self.end_point)
+        self.anchor = kwargs.get('anchor')
         self.color = kwargs.get('color')
         # 线条粗细
-        self.thickness = kwargs.get('thickness') if kwargs.get('thickness') else 1
+        self.thickness = kwargs.get('thickness')
         # 位置传参数，线条渲染模式，这里默认抗锯齿
         self.lineType = kwargs.get('lineType')
-        self._process_args(*args, **kwargs)
+        self.resize = kwargs.get('resize')
+        self.process_args(*args, **kwargs)
 
-    def _process_args(self, *args, **kwargs):
+    def process_args(self, *args, **kwargs):
         if args:
             for arg in args:
                 if isinstance(arg, tuple):
                     if len(arg) == 2:
-                        self.start_point, self.end_point = arg
-                        self.anchor = (self.start_point,self.end_point)
+                        self.anchor = arg
                     elif len(arg) == 3:
                         self.color = arg
                 elif isinstance(arg, int):
                     self.thickness = arg
+        if self.anchor:
+            self.start_point, self.end_point = self.anchor
+        if not self.thickness:
+            self.thickness = 1
+        if not self.color:
+            self.color = Colour.BLACK
 
     def add(self):
         res = self.canvas
@@ -33,11 +40,15 @@ class Line:
             这里已经把画布传入
             添加直线
             """
+            start = resize_args(self.start_point, self.resize)
+            start = coordinate_converter(start, self.canvas)
+
+            end = resize_args(self.end_point, self.resize)
+            end = coordinate_converter(end, self.canvas)
             try:
-                res = cv2.line(self.canvas,self.start_point,self.end_point,self.color,self.thickness)
-                # res = cv2.line(self.canvas,(0,0),(511,511),(255,0,0),5)
+                res = cv2.line(self.canvas, start, end, self.color, self.thickness, lineType=cv2.LINE_AA)
             except Exception as err:
-                print('绘制直线参数错误',err)
+                print('绘制直线参数错误', err)
 
         return res
 
@@ -51,6 +62,7 @@ class ArrowLine(Line):
     int shift = 0,
     double tipLength = 0.1
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # int类型的shift，该数值可以控制箭头的长度和位置，比如当其为1时，箭头的位置变为原先的1/2，长度也变为1/2，
@@ -58,6 +70,7 @@ class ArrowLine(Line):
         self.shift = kwargs.get('shift') if kwargs.get('shift') else 0
         # double类型的tipLength，箭头和箭身的比例，默认为0.1
         self.tipLength = kwargs.get('tipLength') if kwargs.get('tipLength') else 0.1
+        self.process_args(*args, **kwargs)
 
     def add(self):
         res = self.canvas
@@ -68,7 +81,31 @@ class ArrowLine(Line):
             """
             try:
                 res = cv2.arrowedLine(self.canvas, self.start_point, self.end_point,
-                                      self.color, self.thickness,cv2.LINE_AA,self.shift,self.tipLength)
+                                      self.color, self.thickness, cv2.LINE_AA, self.shift, self.tipLength)
+            except Exception as err:
+                # print(self.start_point, self.end_point, self.color, self.thickness, '-----')
+                print('绘制箭头直线参数错误', err)
+        return res
+
+
+class Rectangle(Line):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.shift = kwargs.get('shift')
+        print(args, kwargs)
+        self.process_args(*args, **kwargs)
+
+    def add(self):
+        res = self.canvas
+        if hasattr(self, 'canvas'):
+            """
+            这里已经把画布传入
+            添加矩形
+            """
+            start_point, end_point = self.anchor
+            try:
+                res = cv2.rectangle(self.canvas, start_point, end_point,
+                                    self.color, self.thickness, cv2.LINE_AA, self.shift)
             except Exception as err:
                 # print(self.start_point, self.end_point, self.color, self.thickness, '-----')
                 print('绘制箭头直线参数错误', err)

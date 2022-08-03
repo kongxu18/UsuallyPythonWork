@@ -37,3 +37,6 @@ a = a[:,:int(col/2+3)]
 
 a = '汉'
 print(len(a))
+
+a = 1.345
+print(int(a))

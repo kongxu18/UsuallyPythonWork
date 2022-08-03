@@ -93,9 +93,11 @@ class ChinaWord(Word):
                 # res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
                 print(self.canvas.shape)
                 height, width = self.canvas.shape
-                dpi = 300
-                fig, axes = plt.subplots()
-                plt.show()
+                canvas = np.zeros((height, width, 4), dtype=np.uint8)
+                print(canvas)
+                cv2.imshow('pic', canvas)
+                cv2.waitKey(0)
+
 
 
             except Exception as err:
