@@ -76,31 +76,26 @@ class ChinaWord(Word):
         res = self.canvas
         if hasattr(self, 'canvas'):
             try:
-                # # cv2读取图片
-                # cv2img = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2RGB)  # cv2和PIL中颜色的hex码的储存顺序不同
-                # pill_img = Image.fromarray(cv2img)
-                #
-                # img = plt.show()
-                # print(img,'dadas')
-                #
-                # handle = ImageDraw.Draw(pill_img)
-                # print(self.size)
-                # font = ImageFont.truetype(self.font, self.size, encoding='utf-8')
-                #
-                # handle.text(self.anchor,self.word,self.color,font=font)
-                #
-                # # PIL图片转cv2 图片
-                # res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
-                print(self.canvas.shape)
-                height, width = self.canvas.shape
-                canvas = np.zeros((height, width, 4), dtype=np.uint8)
-                print(canvas)
-                cv2.imshow('pic', canvas)
-                cv2.waitKey(0)
-
-
+                # cv2读取图片
+                cv2img = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2RGB)  # cv2和PIL中颜色的hex码的储存顺序不同
+                pill_img = Image.fromarray(cv2img)
+                handle = ImageDraw.Draw(pill_img)
+                font = ImageFont.truetype(self.font, self.size, encoding='utf-8')
+                handle.text(self.anchor, self.word, self.color, font=font)
+                # PIL图片转cv2 图片
+                res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
 
             except Exception as err:
 
                 print('绘制文字参数错误', err)
         return res
+
+    # def __new__(cls, *args, **kwargs):
+
+
+class PngWord(object):
+    """
+    原生的方法并不能旋转字符，这里对word类进行包装重写
+    生成背景透明的文字图片，旋转后再与 原生图片矩阵指定位置 值进行替换，即覆盖原图片
+    原理：三维矩阵替换
+    """

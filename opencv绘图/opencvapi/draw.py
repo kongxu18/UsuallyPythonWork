@@ -3,7 +3,7 @@ import cv2
 from .settings import BACKGROUND_HEIGHT, BACKGROUND_WIDTH
 from .settings import IMREAD_COLOR
 from .base import BackGround, Canvas
-from .line import Line, ArrowLine,Rectangle
+from .line import Line, ArrowLine, Rectangle
 from .circle import Circle
 from .word import Word
 from . import components
@@ -91,9 +91,11 @@ class Draw(object):
     def add_arrows(self):
         ...
 
+    def resize(self, size):
+        self.background = cv2.resize(self.background,dsize=None, fx=size, fy=size, interpolation=cv2.INTER_LINEAR)
+
     def save(self):
-        if self.background:
-            self.background.save()
+        ...
 
 
 class DrawBuilder(object):
@@ -102,7 +104,7 @@ class DrawBuilder(object):
         'line': Line,
         'circle': Circle,
         'arrow': ArrowLine,
-        'rectangle':Rectangle
+        'rectangle': Rectangle
     }
 
     def __init__(self, draw, typeFun=None):

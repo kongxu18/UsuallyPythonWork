@@ -1,5 +1,5 @@
 import cv2
-from .funs import coordinate_converter, resize_args
+from .funs import coordinate_converter
 from .settings import Colour
 
 
@@ -11,7 +11,7 @@ class Circle(object):
         self.radius = kwargs.get('radius')
         self.color = kwargs.get('color')
         # 位置传参数
-        self.resize = kwargs.get('resize')
+        self.shift= kwargs.get('shift')
         self.thickness = kwargs.get('thickness') if kwargs.get('thickness') else 1
         self._process_args(*args, **kwargs)
 
@@ -35,13 +35,11 @@ class Circle(object):
             这里已经把画布传入
             添加圆圈
             """
-            anchor = resize_args(self.anchor, self.resize)
-            anchor = coordinate_converter(anchor, self.canvas)
 
-            radius = resize_args(self.radius, self.resize)
+            anchor = coordinate_converter(self.anchor, self.canvas)
 
             try:
-                res = cv2.circle(self.canvas, anchor, radius, self.color, self.thickness, cv2.LINE_AA)
+                res = cv2.circle(self.canvas, anchor, self.radius, self.color, self.thickness, cv2.LINE_AA,shift=self.shift)
 
             except Exception as err:
                 print('绘制圆形参数错误', err)

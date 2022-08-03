@@ -29,17 +29,18 @@ for comments in js['data_arr'][0]['draw_arr']:
         anchor = (comments['x'], comments['y'])
         r = comments['r']
         # print(anchor, r)
-        draw.add_circle(anchor, r, Colour.RED, thickness=1, resize=1)
+        draw.add_circle(anchor, r, Colour.RED, thickness=-1)
 
     elif _type == 'Line':
         anchor = ((comments['x1'], comments['y1']), (comments['x2'], comments['y2']))
-        draw.add_line(anchor, Colour.BLUE, resize=1)
+        draw.add_line(anchor, Colour.BLUE)
 
 name = js['data_arr'][0]['name']
-draw.components.add_title(name, 0.8, 1, (50, 50))
-
+# draw.components.add_title(name, 0.8, 1, (50, 50))
+draw.add_word('h我是天才', (100, 100), (18, 18, 18), size=12, china=True)
+draw.resize(1.5)
 cv2.imshow('image', draw.background)
-cv2.imwrite('t.png',draw.background)
+cv2.imwrite('t.png', draw.background)
 cv2.waitKey(0)
 if __name__ == '__main__':
     ...

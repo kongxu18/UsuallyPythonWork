@@ -15,11 +15,14 @@ def add_title(text, font_scale, thickness, anchor, font=None):
     fun_word(word=text, anchor=anchor, size=font_scale, thickness=thickness, color=(0, 0, 0))
 
     fun_rectangle = getattr(DrawLiving, 'add_rectangle', None)
+
     # 矩形,定位2个对角点，左上到右下角
     left_up = anchor[0]-5, anchor[1] - text_h-5
+
     right_down = anchor[0] + text_w+5, anchor[1]+5
-
-    print(left_up,right_down,anchor)
-
     fun_rectangle(anchor=(left_up, right_down), color=(0, 0, 0), thickness=1)
-    print(text_w, text_h, y_bottom)
+
+
+
+def add_rotation_angle_word(text,font_scale, thickness, anchor, font=None):
+    ...

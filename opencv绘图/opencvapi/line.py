@@ -1,5 +1,5 @@
 import cv2
-from .funs import coordinate_converter, resize_args
+from .funs import coordinate_converter
 from .settings import Colour
 
 
@@ -13,7 +13,7 @@ class Line:
         self.thickness = kwargs.get('thickness')
         # 位置传参数，线条渲染模式，这里默认抗锯齿
         self.lineType = kwargs.get('lineType')
-        self.resize = kwargs.get('resize')
+
         self.process_args(*args, **kwargs)
 
     def process_args(self, *args, **kwargs):
@@ -40,11 +40,9 @@ class Line:
             这里已经把画布传入
             添加直线
             """
-            start = resize_args(self.start_point, self.resize)
-            start = coordinate_converter(start, self.canvas)
 
-            end = resize_args(self.end_point, self.resize)
-            end = coordinate_converter(end, self.canvas)
+            start = coordinate_converter(self.start_point, self.canvas)
+            end = coordinate_converter(self.end_point, self.canvas)
             try:
                 res = cv2.line(self.canvas, start, end, self.color, self.thickness, lineType=cv2.LINE_AA)
             except Exception as err:
