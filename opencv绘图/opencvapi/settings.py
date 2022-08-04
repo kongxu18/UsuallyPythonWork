@@ -1,5 +1,7 @@
 # 画布
 import cv2
+import os,sys
+CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 CANVAS = None
 CANVAS_HEIGHT = 720
@@ -13,11 +15,11 @@ IMREAD_COLOR = cv2.IMREAD_COLOR
 IMREAD_GRAYSCALE = cv2.IMREAD_GRAYSCALE
 IMREAD_UNCHANGED = cv2.IMREAD_UNCHANGED
 
-FONTPATH = 'SimSun.ttf'
+FONTPATH = os.path.join(CURRENT_PATH,'msyhl.ttc')
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 # cv2 字体 和汉子字体大小比例
-SCALE_OF_CV2_SIMSUN = 0
+SCALE_OF_CV2_SIMSUN = 32
 
 
 class Colour:

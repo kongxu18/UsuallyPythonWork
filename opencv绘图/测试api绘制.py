@@ -29,18 +29,22 @@ for comments in js['data_arr'][0]['draw_arr']:
         anchor = (comments['x'], comments['y'])
         r = comments['r']
         # print(anchor, r)
-        draw.add_circle(anchor, r, Colour.RED, thickness=-1,offsetCenter=True)
+        draw.add_circle(anchor, r, Colour.RED, thickness=1, offsetCenter=True)
 
     elif _type == 'Line':
         anchor = ((comments['x1'], comments['y1']), (comments['x2'], comments['y2']))
-        draw.add_line(anchor, Colour.BLUE, offsetCenter=True)
+        draw.add_line(anchor, Colour.BLUE, offsetCenter=True, thickness=1)
 
 name = js['data_arr'][0]['name']
 draw.components.add_title(name, 0.8, 1, (50, 50))
-draw.add_word('h我是天才', (100, 100), (18, 18, 18), size=12, china=True)
+# draw.add_word('hello', (150, 100), (18, 18, 18), size=1, thickness=1)
+# draw.add_word('hello2', (200, 100), (18, 18, 18), size=1, thickness=1)
+draw.add_word('这个是中文', (100, 100), (0, 0, 255), size=18, china=True)
+draw.add_word('这个是中文', (300, 100), (0, 0, 255), size=18, china=True,revolve=1)
 draw.resize(1.5)
 cv2.imshow('image', draw.background)
-cv2.imwrite('t.png', draw.background)
+
+cv2.imwrite('t2.png', draw.background)
 cv2.waitKey(0)
 if __name__ == '__main__':
     ...

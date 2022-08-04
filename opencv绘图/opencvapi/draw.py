@@ -70,13 +70,15 @@ class Draw(object):
         word: AnyStr
         anchor: Tuple[int]
         color: Tuple[int]
-        bottomLeftOrigin: bool :图像数据圆点的位置，默认位于左上角。若参数选择True, 则原点位于左下角
+        bottomLeftOrigin: bool :图像数据圆点的位置，默认位于左下角。若参数选择True, 则原点位于左上角。不要用这个参数
 
         以下需要 关键字传参数，也可以不传，有默认值
         font : 字体
         size: float:位置传参数,字体大小
         thickness: float :字体粗细
         china : bool
+        offsetCenter ：bool True 图片的中心当作（0，0），false：图片左上角（0，0）
+        revolve : int 旋转角度
         """
         DrawBuilder(self, typeFun='word').add_somethings(*args, **kwargs)
 
@@ -122,11 +124,11 @@ class DrawBuilder(object):
             background = getattr(self.__draw, 'background', None)
             setattr(living_example, 'canvas', background)
             if hasattr(living_example, 'add'):
-                try:
-                    setattr(self.__draw, 'background', living_example.add())
+                # try:
+                setattr(self.__draw, 'background', living_example.add())
                     # return living_example.add()
-                except Exception as err:
-                    print(err, 'builder')
+                # except Exception as err:
+                #     print(err, 'builder')
 
 
 if __name__ == '__main__':

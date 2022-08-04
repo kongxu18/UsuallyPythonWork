@@ -1,9 +1,10 @@
 import cv2
 from typing import List, Tuple, AnyStr
 from PIL import Image, ImageDraw, ImageFont
-from settings import FONTPATH
+from .settings import FONTPATH
 import numpy as np
-from funs import coordinate_converter, create_word_background, wordPillow_center
+from .funs import coordinate_converter, create_word_background, wordPillow_center, bgr2rgba_converter
+import copy
 
 
 class Word(object):
@@ -23,12 +24,13 @@ class Word(object):
         self.thickness: float = kwargs.get('thickness')
         self.font = kwargs.get('font')
         self.offsetCenter = kwargs.get('offsetCenter')
-
         kwargs.pop('china', None)
         self.process_args(*args, **kwargs)
 
     def __new__(cls, *args, **kwargs):
-        if kwargs.pop('china', False):
+        if kwargs.pop('revolve', False):
+            return super().__new__(PngWord)
+        elif kwargs.pop('china', False):
             """
             表示这个word 是中文
             """
@@ -107,16 +109,17 @@ class PngWord(ChinaWord):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.directions = kwargs.get('directions') if kwargs.get('directions') else 0
+        self.revolve = kwargs.get('revolve') if kwargs.get('revolve') else 0
+        print('revolve', self.revolve)
 
-    def deal(self):
+    def write_words(self):
+        color = bgr2rgba_converter(self.color)
         # 中文字体对象
-        china_fontObj = ImageFont.truetype('SimSun.ttf', size=self.size, encoding='utf-8')
+        china_fontObj = ImageFont.truetype(FONTPATH, size=self.size, encoding='utf-8')
         size = china_fontObj.getsize(self.word)
 
-        width, height = size
-
-        background, canvas_height, canvas_width = create_word_background(width, height)
+        word_width, word_height = size
+        background, self.canvas_height, self.canvas_width = create_word_background(word_width, word_height)
 
         # cv2 图片转成 pillow 图片对象
         # 写入汉字
@@ -124,17 +127,65 @@ class PngWord(ChinaWord):
         cv2img = cv2.cvtColor(background, cv2.COLOR_BGRA2RGBA)
         pill_img = Image.fromarray(cv2img)
         handle = ImageDraw.Draw(pill_img)
-        anchor = wordPillow_center(canvas_height, canvas_width, width, height)
-        handle.text(anchor, self.word, self.color, font=china_fontObj)
+        anchor = wordPillow_center(self.canvas_height, self.canvas_width, word_width, word_height)
+        handle.text(anchor, self.word, color, font=china_fontObj)
         # PIL图片转cv2 图片
-        res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
-        cv2.imshow('china',res)
+        res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGBA2BGRA)
+
+        cv2.imshow('r', res)
         cv2.waitKey(0)
         return res
 
-    def add(self):
+    def revolve_word(self):
+        # 获取cv2 四通道矩阵
+        img = self.write_words()
+        # 旋转角度
+        revolve = self.revolve
+        # 旋转中心
+        center_x, center_y = self.canvas_width // 2 + 1, self.canvas_height // 2 + 1
+        # 旋转，构建旋转角度
+        m = cv2.getRotationMatrix2D((center_x, center_y), revolve, 1)
+        dst = cv2.warpAffine(img, m, (self.canvas_width, self.canvas_height))
+        cv2.imwrite('ce.png', dst)
+        return dst
 
-        res = self.deal()
+    def overlay_img(self):
+        """
+        图片 插入
+        """
+        dst = self.revolve_word()
+
+        # 判断 定位的方式，转换文字图片应该定位的坐标
+        p_left_b = coordinate_converter(self.anchor, self.canvas, self.offsetCenter)
+        # 为了避免麻烦 ，文字图片的左下角为 定位的点
+        p_left_t = (p_left_b[0], p_left_b[1] - self.canvas_height)
+        # p_right_b = (p_left_b[0]+self.canvas_width , p_left_b[1])
+        # p_right_t = (p_left_b[0]+self.canvas_width,p_left_b[1]-self.canvas_height)
+
+        # 对 3 维度矩阵进行遍历
+        # word 构成的是一个正方形
+        dst_len = dst.shape[0]
+        print(dst_len)
+
+        canvas = copy.deepcopy(self.canvas)
+
+        # 遍历 word图片 ，只需要透明度 = 255 的
+        for row in range(dst_len):
+            for col in range(dst_len):
+                color = dst[row, col]
+                if color[3] !=0:
+                    # 同时需要找到 原本图片 需要插入的位置坐标，同步遍历并替换
+                    canvas[p_left_t[0] + row, p_left_t[1] + col] = color[:3]
+
+        self.canvas = cv2.cvtColor(canvas,cv2.COLOR_BGR2BGRA)
+        self.canvas[:dst_len,:dst_len] = dst
+
+        return self.canvas
+
+    def add(self):
+        res = self.canvas
+        if hasattr(self, 'canvas'):
+            res = self.overlay_img()
         return res
 
 
