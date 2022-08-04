@@ -23,6 +23,6 @@ pnpm-debug.log*
 .mp4
 .mp3
 .idea
-.png
-.jpeg
-.jpg
+*.png
+*.jpeg
+*.jpg
