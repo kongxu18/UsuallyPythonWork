@@ -15,6 +15,11 @@ IMREAD_UNCHANGED = cv2.IMREAD_UNCHANGED
 
 FONTPATH = 'SimSun.ttf'
 FONT = cv2.FONT_HERSHEY_SIMPLEX
+
+# cv2 字体 和汉子字体大小比例
+SCALE_OF_CV2_SIMSUN = 0
+
+
 class Colour:
     BLACK = (0, 0, 0)
     BLUE = (255, 0, 0)

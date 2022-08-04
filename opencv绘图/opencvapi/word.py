@@ -1,11 +1,9 @@
 import cv2
 from typing import List, Tuple, AnyStr
 from PIL import Image, ImageDraw, ImageFont
-from .settings import FONTPATH
+from settings import FONTPATH
 import numpy as np
-from .base import Canvas
-import matplotlib.pyplot as plt
-from matplotlib import font_manager
+from funs import coordinate_converter, create_word_background, wordPillow_center
 
 
 class Word(object):
@@ -24,8 +22,10 @@ class Word(object):
         # 字体粗细
         self.thickness: float = kwargs.get('thickness')
         self.font = kwargs.get('font')
+        self.offsetCenter = kwargs.get('offsetCenter')
+
         kwargs.pop('china', None)
-        self._process_args(*args, **kwargs)
+        self.process_args(*args, **kwargs)
 
     def __new__(cls, *args, **kwargs):
         if kwargs.pop('china', False):
@@ -35,7 +35,7 @@ class Word(object):
             return super().__new__(ChinaWord)
         return super().__new__(cls)
 
-    def _process_args(self, *args, **kwargs):
+    def process_args(self, *args, **kwargs):
         if args:
             for arg in args:
                 if isinstance(arg, tuple):
@@ -49,6 +49,8 @@ class Word(object):
                     self.bottomLeftOrigin = arg
         if not self.font:
             self.font = cv2.FONT_HERSHEY_SIMPLEX
+        if not self.offsetCenter:
+            self.offsetCenter = False
 
     def add(self):
         res = self.canvas
@@ -57,8 +59,8 @@ class Word(object):
             这里已经把画布传入
             """
             try:
-                print(self.word, 'word')
-                res = cv2.putText(self.canvas, text=self.word, org=self.anchor, fontFace=self.font,
+                anchor = coordinate_converter(anchor=self.anchor, canvas=self.canvas, offsetCenter=self.offsetCenter)
+                res = cv2.putText(self.canvas, text=self.word, org=anchor, fontFace=self.font,
                                   fontScale=self.size, color=self.color, thickness=self.thickness,
                                   lineType=cv2.LINE_AA, bottomLeftOrigin=self.bottomLeftOrigin)
             except Exception as err:
@@ -69,33 +71,73 @@ class Word(object):
 class ChinaWord(Word):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.process_args(*args, **kwargs)
         self.font = FONTPATH if not kwargs.get('font') else kwargs.get('font')
+
+    @staticmethod
+    def put_china(canvas, word, anchor, size, font, color):
+        # cv2读取图片
+        cv2img = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)  # cv2和PIL中颜色的hex码的储存顺序不同
+        pill_img = Image.fromarray(cv2img)
+        handle = ImageDraw.Draw(pill_img)
+        china_font_obj = ImageFont.truetype(font, size, encoding='utf-8')
+        handle.text(anchor, word, color, font=china_font_obj)
+        # PIL图片转cv2 图片
+        res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
+        return res
 
     def add(self):
         # 中文对add 方法进行重写
         res = self.canvas
         if hasattr(self, 'canvas'):
             try:
-                # cv2读取图片
-                cv2img = cv2.cvtColor(self.canvas, cv2.COLOR_BGR2RGB)  # cv2和PIL中颜色的hex码的储存顺序不同
-                pill_img = Image.fromarray(cv2img)
-                handle = ImageDraw.Draw(pill_img)
-                font = ImageFont.truetype(self.font, self.size, encoding='utf-8')
-                handle.text(self.anchor, self.word, self.color, font=font)
-                # PIL图片转cv2 图片
-                res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
-
+                anchor = coordinate_converter(anchor=self.anchor, canvas=self.canvas, offsetCenter=self.offsetCenter)
+                res = self.put_china(self.canvas, self.word, anchor, self.size, self.font, self.color)
             except Exception as err:
-
                 print('绘制文字参数错误', err)
         return res
 
-    # def __new__(cls, *args, **kwargs):
 
-
-class PngWord(object):
+class PngWord(ChinaWord):
     """
     原生的方法并不能旋转字符，这里对word类进行包装重写
     生成背景透明的文字图片，旋转后再与 原生图片矩阵指定位置 值进行替换，即覆盖原图片
     原理：三维矩阵替换
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.directions = kwargs.get('directions') if kwargs.get('directions') else 0
+
+    def deal(self):
+        # 中文字体对象
+        china_fontObj = ImageFont.truetype('SimSun.ttf', size=self.size, encoding='utf-8')
+        size = china_fontObj.getsize(self.word)
+
+        width, height = size
+
+        background, canvas_height, canvas_width = create_word_background(width, height)
+
+        # cv2 图片转成 pillow 图片对象
+        # 写入汉字
+        # cv2和PIL中颜色的hex码的储存顺序不同,保持4通道
+        cv2img = cv2.cvtColor(background, cv2.COLOR_BGRA2RGBA)
+        pill_img = Image.fromarray(cv2img)
+        handle = ImageDraw.Draw(pill_img)
+        anchor = wordPillow_center(canvas_height, canvas_width, width, height)
+        handle.text(anchor, self.word, self.color, font=china_fontObj)
+        # PIL图片转cv2 图片
+        res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGB2BGR)
+        cv2.imshow('china',res)
+        cv2.waitKey(0)
+        return res
+
+    def add(self):
+
+        res = self.deal()
+        return res
+
+
+if __name__ == '__main__':
+    a = PngWord()
+    print(a.font)

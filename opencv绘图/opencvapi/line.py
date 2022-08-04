@@ -13,10 +13,12 @@ class Line:
         self.thickness = kwargs.get('thickness')
         # 位置传参数，线条渲染模式，这里默认抗锯齿
         self.lineType = kwargs.get('lineType')
+        self.offsetCenter: bool = kwargs.get('offsetCenter')
 
         self.process_args(*args, **kwargs)
 
     def process_args(self, *args, **kwargs):
+
         if args:
             for arg in args:
                 if isinstance(arg, tuple):
@@ -32,6 +34,8 @@ class Line:
             self.thickness = 1
         if not self.color:
             self.color = Colour.BLACK
+        if not self.offsetCenter:
+            self.offsetCenter = False
 
     def add(self):
         res = self.canvas
@@ -41,8 +45,9 @@ class Line:
             添加直线
             """
 
-            start = coordinate_converter(self.start_point, self.canvas)
-            end = coordinate_converter(self.end_point, self.canvas)
+            start = coordinate_converter(self.start_point, self.canvas, self.offsetCenter)
+            end = coordinate_converter(self.end_point, self.canvas, self.offsetCenter)
+
             try:
                 res = cv2.line(self.canvas, start, end, self.color, self.thickness, lineType=cv2.LINE_AA)
             except Exception as err:
@@ -77,8 +82,11 @@ class ArrowLine(Line):
             这里已经把画布传入
             添加直线
             """
+
+            start = coordinate_converter(self.start_point, self.canvas, self.offsetCenter)
+            end = coordinate_converter(self.end_point, self.canvas, self.offsetCenter)
             try:
-                res = cv2.arrowedLine(self.canvas, self.start_point, self.end_point,
+                res = cv2.arrowedLine(self.canvas, start, end,
                                       self.color, self.thickness, cv2.LINE_AA, self.shift, self.tipLength)
             except Exception as err:
                 # print(self.start_point, self.end_point, self.color, self.thickness, '-----')
@@ -90,7 +98,7 @@ class Rectangle(Line):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.shift = kwargs.get('shift')
-        print(args, kwargs)
+
         self.process_args(*args, **kwargs)
 
     def add(self):
@@ -100,9 +108,11 @@ class Rectangle(Line):
             这里已经把画布传入
             添加矩形
             """
-            start_point, end_point = self.anchor
+
+            start = coordinate_converter(self.start_point, self.canvas, self.offsetCenter)
+            end = coordinate_converter(self.end_point, self.canvas, self.offsetCenter)
             try:
-                res = cv2.rectangle(self.canvas, start_point, end_point,
+                res = cv2.rectangle(self.canvas, start, end,
                                     self.color, self.thickness, cv2.LINE_AA, self.shift)
             except Exception as err:
                 # print(self.start_point, self.end_point, self.color, self.thickness, '-----')
