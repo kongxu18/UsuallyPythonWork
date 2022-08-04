@@ -11,7 +11,8 @@ class Circle(object):
         self.radius = kwargs.get('radius')
         self.color = kwargs.get('color')
         # 位置传参数
-        self.shift= kwargs.get('shift')
+        self.offsetCenter = kwargs.get('offsetCenter')
+        self.shift = kwargs.get('shift')
         self.thickness = kwargs.get('thickness') if kwargs.get('thickness') else 1
         self._process_args(*args, **kwargs)
 
@@ -27,6 +28,8 @@ class Circle(object):
                         self.color = arg
         if not self.color:
             self.color = Colour.BLACK
+        if not self.offsetCenter:
+            self.offsetCenter = False
 
     def add(self):
         res = self.canvas
@@ -36,10 +39,11 @@ class Circle(object):
             添加圆圈
             """
 
-            anchor = coordinate_converter(self.anchor, self.canvas)
+            anchor = coordinate_converter(self.anchor, self.canvas, self.offsetCenter)
 
             try:
-                res = cv2.circle(self.canvas, anchor, self.radius, self.color, self.thickness, cv2.LINE_AA,shift=self.shift)
+                res = cv2.circle(self.canvas, anchor, self.radius, self.color, self.thickness, cv2.LINE_AA,
+                                 shift=self.shift)
 
             except Exception as err:
                 print('绘制圆形参数错误', err)

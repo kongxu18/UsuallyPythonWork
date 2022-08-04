@@ -16,6 +16,7 @@ class Draw(object):
         self.height = kwargs.get('height')
         self.flags = IMREAD_COLOR
         self.components = components
+        self.background = None
         self._process_args()
 
     def _canvas(self, *args):
@@ -125,7 +126,7 @@ class DrawBuilder(object):
                     setattr(self.__draw, 'background', living_example.add())
                     # return living_example.add()
                 except Exception as err:
-                    print(err, '99')
+                    print(err, 'builder')
 
 
 if __name__ == '__main__':
