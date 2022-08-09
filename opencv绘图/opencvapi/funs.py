@@ -23,14 +23,24 @@ def coordinate_converter(anchor: any, canvas, offsetCenter=False):
     return x, y
 
 
-def wordPillow_center(canvas_width, canvas_height, word_width, word_height):
+def wordPillow_offset(canvas_width, canvas_height, word_width, word_height, o_type, off=0):
     """
     pillow 文字定位在文字的左上角
     需要使得文字在背景图片自动居中显示
     计算出相对的中心点
     """
-    # center
-    x_center, y_center = canvas_width // 2 + 1 - word_width // 2, canvas_height // 2 + 1 - word_height // 2
+    if o_type == 'left':
+        x_center, y_center = round_off(canvas_width / 2) + off, \
+                             round_off(canvas_height / 2) - round_off(word_height / 2)
+
+    elif o_type == 'right':
+
+        x_center, y_center = round_off(canvas_width / 2) - word_width - off, \
+                             round_off(canvas_height / 2) - round_off(word_height / 2)
+    else:
+        # center
+        x_center, y_center = round_off(canvas_width / 2) - round_off(word_width / 2), \
+                             round_off(canvas_height / 2) - round_off(word_height / 2)
     return x_center, y_center
 
 

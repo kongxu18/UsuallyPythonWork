@@ -45,15 +45,16 @@ draw.components.add_title(name, 0.8, 1, (100, 100))
 #               alignment_type='center', alignment_spacing=25)
 # draw.add_word('ABCDEFG', (100, 100), (0, 0, 255), size=1, china=False, revolve=0, offsetCenter=True,
 #               alignment_type='left', alignment_spacing=25)
-draw.add_word('ABCDEFG哈哈', (100, 100), (0, 0, 255), size=17, china=True, revolve=45, offsetCenter=True,
-              alignment_type='right', alignment_spacing=25)
+draw.add_word('ABCDEFG', (100, 100), (0, 0, 255), size=1, china=False, offsetCenter=False,
+              alignment_type='left', alignment_spacing=25)
 
-# draw.add_line(((200, 0), (200, 200)), 1, (255, 255, 0), offsetCenter=False)
-# draw.add_line(((0, 100), (400, 100)), 1, (255, 255, 0), offsetCenter=False)
+draw.add_line(((100, 0), (100, 200)), 1, (255, 255, 0), offsetCenter=False)
+draw.add_line(((0, 100), (200, 100)), 1, (255, 255, 0), offsetCenter=False)
 
 draw.add_line(((100, 0), (100, 200)), 1, (255, 255, 28), offsetCenter=True)
 draw.add_line(((0, 100), (200, 100)), 1, (255, 255, 28), offsetCenter=True)
 draw.resize(1.5)
+
 cv2.imshow('image', draw.background)
 
 cv2.imwrite('api.png', draw.background)

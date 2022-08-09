@@ -97,8 +97,9 @@ class Draw(object):
     def resize(self, size):
         self.background = cv2.resize(self.background,dsize=None, fx=size, fy=size, interpolation=cv2.INTER_LINEAR)
 
-    def save(self):
-        ...
+    def save(self,path):
+        cv2.imwrite(path,self.background)
+
 
 
 class DrawBuilder(object):
@@ -124,11 +125,11 @@ class DrawBuilder(object):
             background = getattr(self.__draw, 'background', None)
             setattr(living_example, 'canvas', background)
             if hasattr(living_example, 'add'):
-                # try:
-                setattr(self.__draw, 'background', living_example.add())
+                try:
+                    setattr(self.__draw, 'background', living_example.add())
                     # return living_example.add()
-                # except Exception as err:
-                #     print(err, 'builder')
+                except Exception as err:
+                    print(err, 'builder')
 
 
 if __name__ == '__main__':

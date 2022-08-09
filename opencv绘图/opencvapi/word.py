@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .settings import FONTPATH
 import numpy as np
 from .funs import coordinate_converter, create_word_background, \
-    wordPillow_center, bgr2rgba_converter, add_alpha_channel, round_off
+    wordPillow_offset, bgr2rgba_converter, add_alpha_channel, round_off
 import copy
 
 
@@ -59,7 +59,7 @@ class Word(object):
         if not self.offsetCenter:
             self.offsetCenter = False
 
-    def get_size(self, *args):
+    def get_word_size(self, *args):
         """
         这里是文字的size
         """
@@ -77,7 +77,7 @@ class Word(object):
             self.alignment_spacing = 7
 
         # 得到文字的长度和宽度并赋值操作
-        word_width, word_height = self.get_size()
+        word_width, word_height = self.get_word_size()
 
         # 针对写文字的布局，跟定的anchor 默认为文字的中心点
         # left ：文字左边界
@@ -169,9 +169,18 @@ class PngWord(ChinaWord):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.revolve = kwargs.get('revolve') if kwargs.get('revolve') else 0
+        self.color = bgr2rgba_converter(self.color)
+        self.background = None
 
-    def get_size(self, *args):
-        return self.wordPng_width, self.wordPng_height
+    def get_word_size(self, *args):
+        # 中文字体对象
+        self.font = ImageFont.truetype(FONTPATH, size=self.size, encoding='utf-8')
+        size = self.font.getsize(self.word)
+        try:
+            self.word_width, self.word_height = size
+        except Exception as err:
+            raise ValueError('不可识别文字错误：', err)
+        return self.word_width, self.word_height
 
     def alignment(self):
         if not self.alignment_type:
@@ -179,62 +188,56 @@ class PngWord(ChinaWord):
         if not self.alignment_spacing:
             self.alignment_spacing = 7
 
-        # 得到文字的长度和宽度并赋值操作
-        png_width, png_height = self.get_size()
-
-        # 针对写文字的布局，跟定的anchor 默认为文字的中心点
         # left ：文字左边界
         # right：文字右边界
-        anchor = coordinate_converter(anchor=self.anchor, canvas=self.canvas, offsetCenter=self.offsetCenter)
+        # anchor = coordinate_converter(anchor=self.anchor, canvas=self.canvas, offsetCenter=self.offsetCenter)
+        word_width, word_height = self.get_word_size()
+        background = create_word_background((word_width + self.alignment_spacing) * 2, word_height)
+        self.wordPng_height, self.wordPng_width = background.shape[0], background.shape[1]
+        word_anchor = None
+        try:
+            if self.alignment_type == 'center':
+                # 计算应该绘制文字的坐标
+                background = create_word_background(word_width, word_height)
+                self.wordPng_height, self.wordPng_width = background.shape[0], background.shape[1]
+                # pillow put 以文字的左上角作为标点，需要换算出绘制在背景上的坐标
+                word_anchor = wordPillow_offset(self.wordPng_width, self.wordPng_height, word_width, word_height,
+                                                'center', self.alignment_spacing)
 
-        if self.alignment_type == 'center':
-            # 计算应该绘制文字的坐标
-            try:
-                anchor = anchor[0] - round_off(png_width / 2), anchor[1] - round_off(png_height / 2)
-                return anchor
-            except Exception as err:
-                raise ValueError('给定的坐标无法修正:', err)
-        elif self.alignment_type == 'left':
-            # 计算应该绘制文字的坐标
-            try:
-                anchor = anchor[0] + self.alignment_spacing, anchor[1] - round_off(png_height / 2)
-                return anchor
-            except Exception as err:
-                raise ValueError('给定的坐标无法修正:', err)
-        elif self.alignment_type == 'right':
-            # 计算应该绘制文字的坐标
-            try:
-                anchor = anchor[0] - self.alignment_spacing - png_width, \
-                         anchor[1] - round_off(png_height / 2)
-                return anchor
-            except Exception as err:
-                raise ValueError('给定的坐标无法修正:', err)
-        else:
-            raise ValueError('alignment_type 不是期望的值')
+            elif self.alignment_type == 'left':
+
+                word_anchor = wordPillow_offset(self.wordPng_width, self.wordPng_height, word_width, word_height,
+                                                'left', self.alignment_spacing)
+
+            elif self.alignment_type == 'right':
+
+                word_anchor = wordPillow_offset(self.wordPng_width, self.wordPng_height, word_width, word_height,
+                                                'right', self.alignment_spacing)
+
+        except Exception as err:
+            raise ValueError('alignment_type 不是期望的值', err)
+
+        self.background = background
+        return word_anchor
 
     def write_words(self):
-        color = bgr2rgba_converter(self.color)
-        # 中文字体对象
-        china_fontObj = ImageFont.truetype(FONTPATH, size=self.size, encoding='utf-8')
-        size = china_fontObj.getsize(self.word)
-        word_width, word_height = size
 
-        background = create_word_background(word_width, word_height)
-
-        self.wordPng_height, self.wordPng_width = background.shape[0], background.shape[1]
-
+        anchor = self.alignment()
+        # 测试用的基准线，注释
+        # cv2.line(self.background,(0,0),(self.wordPng_width,self.wordPng_height),(255,35,35,255))
+        # cv2.line(self.background, (0, self.wordPng_height), (self.wordPng_width, 0), (255, 35, 35,255))
         # cv2 图片转成 pillow 图片对象
         # 写入汉字
         # cv2和PIL中颜色的hex码的储存顺序不同,保持4通道
-        cv2img = cv2.cvtColor(background, cv2.COLOR_BGRA2RGBA)
+        cv2img = cv2.cvtColor(self.background, cv2.COLOR_BGRA2RGBA)
         pill_img = Image.fromarray(cv2img)
         handle = ImageDraw.Draw(pill_img)
-
-        anchor = wordPillow_center(self.wordPng_width, self.wordPng_height, word_width, word_height)
-
-        handle.text(anchor, self.word, color, font=china_fontObj)
+        handle.text(anchor, self.word, self.color, font=self.font)
         # PIL图片转cv2 图片
         res = cv2.cvtColor(np.array(pill_img), cv2.COLOR_RGBA2BGRA)
+        # cv2.imshow('a', res)
+        # cv2.waitKey(0)
+
         return res
 
     def revolve_word(self):
@@ -242,12 +245,13 @@ class PngWord(ChinaWord):
         img = self.write_words()
         # 旋转角度
         revolve = self.revolve
-        # 旋转中心
-        center_x, center_y = self.wordPng_width // 2 + 1, self.wordPng_height // 2 + 1
+        # 旋转中心 始终是图片的中心
+        center_x, center_y = round_off(self.wordPng_width / 2), round_off(self.wordPng_height / 2)
         # 旋转，构建旋转角度
         m = cv2.getRotationMatrix2D((center_x, center_y), revolve, 1)
         dst = cv2.warpAffine(img, m, (self.wordPng_width, self.wordPng_height))
-
+        cv2.imshow('a', dst)
+        cv2.waitKey(0)
         return dst
 
     @staticmethod
@@ -282,14 +286,12 @@ class PngWord(ChinaWord):
         """
         png_img = self.revolve_word()
 
-        # 判断 定位的方式，转换文字图片应该定位的坐标,默认参数输入的点是图片左上角
-        # 再经过偏移，使得坐标在文字中心
+        # 把图片的中心 跟 输入的anchor 进行重合叠加
+        anchor = coordinate_converter(anchor=self.anchor, canvas=self.canvas, offsetCenter=self.offsetCenter)
 
-        print(self.anchor, 'anchor', self.wordPng_width, self.wordPng_height)
+        # 进行偏移 计算正确的图片左上角坐标
 
-        # p_left_t = coordinate_converter(anchor, self.canvas, self.offsetCenter)
-
-        p_left_t = self.alignment()
+        p_left_t = anchor[0]-round_off(self.wordPng_width/2),anchor[1]-round_off(self.wordPng_height/2)
         # 右下角坐标
         p_right_b = (p_left_t[0] + self.wordPng_width, p_left_t[1] + self.wordPng_height)
 
@@ -304,11 +306,11 @@ class PngWord(ChinaWord):
                                     (canvas.shape[0], canvas.shape[1]))
 
         # 获取要覆盖图像的alpha值，将像素值除以255，使值保持在0-1之间
-        # alpha_png = png_img[yy1:yy2, xx1:xx2, 3] / 255.0
-        # alpha_jpg = 1 - alpha_png
-
         alpha_png = png_img[yy1:yy2, xx1:xx2, 3] / 255.0
-        alpha_jpg = alpha_png
+        alpha_jpg = 1 - alpha_png
+
+        # alpha_png = png_img[yy1:yy2, xx1:xx2, 3] / 255.0
+        # alpha_jpg = alpha_png
 
         # 开始进行叠加
         for c in range(0, 3):
@@ -320,11 +322,11 @@ class PngWord(ChinaWord):
     def add(self):
         res = self.canvas
         if hasattr(self, 'canvas'):
-            try:
+            # try:
 
-                res = self.overlay_img()
-            except Exception as err:
-                print('绘制WordPng 出错', err)
+            res = self.overlay_img()
+            # except Exception as err:
+            #     print('绘制WordPng 出错', err)
         return res
 
 
