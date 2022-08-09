@@ -24,9 +24,3 @@ def add_title(text, font_scale, thickness, anchor, font=None):
     right_down = anchor[0] + text_w // 2 + 5, anchor[1] + text_h // 2 + 5
 
     fun_rectangle(anchor=(left_up, right_down), color=(0, 0, 0), thickness=1)
-
-
-def text_align(type):
-    """
-    type : left,center,right
-    """
