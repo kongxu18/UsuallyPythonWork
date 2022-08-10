@@ -1,7 +1,7 @@
 import cv2
 
 from .settings import BACKGROUND_HEIGHT, BACKGROUND_WIDTH
-from .settings import IMREAD_COLOR
+from .settings import IMREAD_COLOR, Colour
 from .base import BackGround, Canvas
 from .line import Line, ArrowLine, Rectangle, PolyLine
 from .circle import Circle
@@ -10,23 +10,22 @@ from . import components
 
 
 class Draw(object):
-    def __init__(self, path=None, **kwargs):
+    def __init__(self, path=None, color=Colour.BLACK, **kwargs):
         self.path = path
         self.width = kwargs.get('width')
         self.height = kwargs.get('height')
-        self.flags = IMREAD_COLOR
+        # 背景色
+        self.color = color
+
+        # 以下私有变量，暂时不要动
         self.components = components
         self.background = None
         self._process_args()
 
-    def _canvas(self, *args):
+    def _canvas(self, **kwargs):
         # 传入了一个背景，彩色默认
-        self.canvas = BackGround() if self.path else Canvas()
-
+        self.canvas = BackGround(**kwargs) if self.path else Canvas(**kwargs)
         if hasattr(self.canvas, 'create'):
-            self.canvas.width = self.width
-            self.canvas.height = self.height
-            self.canvas.path = self.path
             return self.canvas.create()
         else:
             raise Exception('画布初始化创建失败')
@@ -36,8 +35,8 @@ class Draw(object):
             self.width = BACKGROUND_WIDTH
         if not self.height:
             self.height = BACKGROUND_HEIGHT
-        arg = {'path': self.path, 'width': self.width, 'height': self.height}
-        self.background = self._canvas(arg)
+        args = {'path': self.path, 'width': self.width, 'height': self.height,'color':self.color}
+        self.background = self._canvas(**args)
         setattr(self.components, 'DrawLiving', self)
 
     def add_line(self, *args, **kwargs):
@@ -45,10 +44,6 @@ class Draw(object):
         增加线条
         """
         DrawBuilder(self, typeFun='line').add_somethings(*args, **kwargs)
-
-    def add_lines(self, line_list):
-        for line in line_list:
-            self.add_line(line)
 
     def add_rectangle(self, *args, **kwargs):
         """
@@ -79,15 +74,21 @@ class Draw(object):
         china : bool
         offsetCenter ：bool True 图片的中心当作（0，0），false：图片左上角（0，0）
         revolve : int 旋转角度
+        alignment_type 文字对齐方式
+        alignment_spacing 中心点与文字间距
         """
         DrawBuilder(self, typeFun='word').add_somethings(*args, **kwargs)
-
-    def add_words(self, word_list: list):
-        ...
 
     def add_arrow(self, *args, **kwargs):
         """
         添加直线箭头
+        InputOutputArray img, # 输入图像
+        const Scalar &  color, # 颜色
+        int thickness = 1, # 线宽
+        int line_type = 8, # 渲染类型
+        int shift = 0, int类型的shift，该数值可以控制箭头的长度和位置，比如当其为1时，箭头的位置变为原先的1/2，长度也变为1/2，
+        若该数值为2，则均变为原先的1/4。我猜测数值X和缩放的比例关系应该是2的X次方的倒数。
+        double tipLength = 0.1 double类型的tipLength，箭头和箭身的比例，默认为0.1
         """
         DrawBuilder(self, typeFun='arrow').add_somethings(*args, **kwargs)
 
