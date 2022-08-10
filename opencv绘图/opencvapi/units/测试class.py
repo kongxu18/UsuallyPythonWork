@@ -14,6 +14,7 @@ class B(A):
 
     def fun1(self):
         super(B, self).fun()
+        self.fun()
 
     def fun(self):
         print('B fun')

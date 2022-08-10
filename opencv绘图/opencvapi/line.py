@@ -1,4 +1,6 @@
 import cv2
+import numpy as np
+
 from .funs import coordinate_converter
 from .settings import Colour
 
@@ -18,7 +20,6 @@ class Line:
         self.process_args(*args, **kwargs)
 
     def process_args(self, *args, **kwargs):
-
         if args:
             for arg in args:
                 if isinstance(arg, tuple):
@@ -73,7 +74,6 @@ class ArrowLine(Line):
         self.shift = kwargs.get('shift') if kwargs.get('shift') else 0
         # double类型的tipLength，箭头和箭身的比例，默认为0.1
         self.tipLength = kwargs.get('tipLength') if kwargs.get('tipLength') else 0.1
-        self.process_args(*args, **kwargs)
 
     def add(self):
         res = self.canvas
@@ -99,8 +99,6 @@ class Rectangle(Line):
         super().__init__(*args, **kwargs)
         self.shift = kwargs.get('shift')
 
-        self.process_args(*args, **kwargs)
-
     def add(self):
         res = self.canvas
         if hasattr(self, 'canvas'):
@@ -117,4 +115,49 @@ class Rectangle(Line):
             except Exception as err:
                 # print(self.start_point, self.end_point, self.color, self.thickness, '-----')
                 print('绘制箭头直线参数错误', err)
+        return res
+
+
+class PolyLine(Line):
+    """
+    多边形
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.anchors = kwargs.get('anchors') if kwargs.get('anchors') else None
+        self.isClosed = kwargs.get('isClosed') if kwargs.get('isClosed') else True
+
+        super().__init__(*args, **kwargs)
+        self.fillcolor = kwargs.get('fillcolor') if kwargs.get('fillcolor') else self.color
+
+    def process_args(self, *args, **kwargs):
+        super().process_args(*args, **kwargs)
+        if args:
+            for arg in args:
+                if isinstance(arg, list):
+                    self.anchors = arg
+
+    def reshape(self):
+        if self.anchors:
+            for i, point in enumerate(self.anchors):
+                self.anchors[i] = coordinate_converter(point, self.canvas, offsetCenter=self.offsetCenter)
+            self.anchors = np.array(self.anchors, dtype=np.int32).reshape((-1, 1, 2))
+
+        else:
+            raise ValueError('polyline 关键参数为空')
+
+    def add(self):
+        res = self.canvas
+        if hasattr(self, 'canvas'):
+            try:
+                self.reshape()
+                if self.thickness == -1:
+                    thickness = 1
+                    res = cv2.polylines(self.canvas, [self.anchors], self.isClosed, self.color, thickness)
+                    res = cv2.fillPoly(self.canvas, [self.anchors], self.fillcolor)
+                else:
+                    res = cv2.polylines(self.canvas, [self.anchors], self.isClosed, self.color, self.thickness)
+
+            except Exception as err:
+                print('绘制多边形错误：', err)
         return res

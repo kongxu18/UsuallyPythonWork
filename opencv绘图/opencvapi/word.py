@@ -35,9 +35,7 @@ class Word(object):
         self.process_args(*args, **kwargs)
 
     def __new__(cls, *args, **kwargs):
-        if kwargs.pop('revolve', False):
-            return super().__new__(PngWord)
-        elif kwargs.pop('china', False):
+        if kwargs.pop('revolve', False) or kwargs.pop('china', False):
             """
             表示这个word 是中文
             """
@@ -250,8 +248,8 @@ class PngWord(ChinaWord):
         # 旋转，构建旋转角度
         m = cv2.getRotationMatrix2D((center_x, center_y), revolve, 1)
         dst = cv2.warpAffine(img, m, (self.wordPng_width, self.wordPng_height))
-        cv2.imshow('a', dst)
-        cv2.waitKey(0)
+        # cv2.imshow('a', dst)
+        # cv2.waitKey(0)
         return dst
 
     @staticmethod
@@ -323,8 +321,8 @@ class PngWord(ChinaWord):
         res = self.canvas
         if hasattr(self, 'canvas'):
             # try:
-
             res = self.overlay_img()
+            res = cv2.cvtColor(res,cv2.COLOR_BGRA2BGR)
             # except Exception as err:
             #     print('绘制WordPng 出错', err)
         return res

@@ -3,7 +3,7 @@ import cv2
 from .settings import BACKGROUND_HEIGHT, BACKGROUND_WIDTH
 from .settings import IMREAD_COLOR
 from .base import BackGround, Canvas
-from .line import Line, ArrowLine, Rectangle
+from .line import Line, ArrowLine, Rectangle, PolyLine
 from .circle import Circle
 from .word import Word
 from . import components
@@ -94,12 +94,14 @@ class Draw(object):
     def add_arrows(self):
         ...
 
+    def add_polyline(self, *args, **kwargs):
+        DrawBuilder(self, typeFun='polyline').add_somethings(*args, **kwargs)
+
     def resize(self, size):
-        self.background = cv2.resize(self.background,dsize=None, fx=size, fy=size, interpolation=cv2.INTER_LINEAR)
+        self.background = cv2.resize(self.background, dsize=None, fx=size, fy=size, interpolation=cv2.INTER_LINEAR)
 
-    def save(self,path):
-        cv2.imwrite(path,self.background)
-
+    def save(self, path):
+        cv2.imwrite(path, self.background)
 
 
 class DrawBuilder(object):
@@ -108,7 +110,8 @@ class DrawBuilder(object):
         'line': Line,
         'circle': Circle,
         'arrow': ArrowLine,
-        'rectangle': Rectangle
+        'rectangle': Rectangle,
+        'polyline': PolyLine
     }
 
     def __init__(self, draw, typeFun=None):
@@ -123,6 +126,8 @@ class DrawBuilder(object):
             living_example = obj(*args, **kwargs)
             # print(type(living_example), '对象')
             background = getattr(self.__draw, 'background', None)
+            if background is None:
+                raise ValueError('背景canvas 为空，使用方法错误')
             setattr(living_example, 'canvas', background)
             if hasattr(living_example, 'add'):
                 try:
