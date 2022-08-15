@@ -56,8 +56,13 @@ draw.add_line(((0, 100), (200, 100)), 1, (255, 255, 28), offsetCenter=True)
 
 pts = [[25, 160], [110, 200], [200, 160], [200, 70], [110, 20], [25, 70]]
 
-draw.add_polyline(pts, (255, 19, 0), offsetCenter=False, thickness=-1)
+# draw.add_polyline(pts, (255, 19, 0), offsetCenter=False, thickness=-1)
 # draw.resize(1.5)
+draw.add_word('100mm', (200, 300), (255, 255, 255), size=1, revolve=0, offsetCenter=False,
+              alignment_type='center')
+
+draw.add_word('100mm', (600, 300), (255, 255, 255), size=20, revolve=45, offsetCenter=False,
+              alignment_type='center')
 
 cv2.imshow('image', draw.background)
 
