@@ -1,5 +1,5 @@
 import openpyxl
-from 操作excel.excelApi import sqldata
+from 操作excel.excelApi import data
 from 操作excel.excelApi import *
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Border, Side, Alignment, PatternFill, colors
@@ -8,7 +8,7 @@ from copy import copy
 import re
 
 sql = "select  * from FT256D现场工人出勤统计('*','*','*',10429,'2022-05-01','2022-05-30')"
-data: pd.DataFrame = sqldata.Data(sql).data
+data: pd.DataFrame = data.Data(sql).data
 
 # 增加一个新列
 data['工人工日'] = pd.to_numeric(data['工人工日'])

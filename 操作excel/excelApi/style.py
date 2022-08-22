@@ -20,9 +20,18 @@ fill_green = PatternFill(fill_type="solid", fgColor="7FCA40")
 fill_yellow = PatternFill(fill_type="solid", fgColor='EAC121')
 fill_gray = PatternFill(fill_type="solid", fgColor='A6A6A6')
 fill_blue = PatternFill(fill_type="solid", fgColor='8DB4E2')
+fill_220 = PatternFill(fill_type='solid',fgColor='FFC0CB')
 
-font14 = Font(name='宋体', bold=False, size=14)
+
 font12 = Font(name='宋体', bold=False, size=12)
-font14p = Font(name='宋体', bold=True, size=14)
-font16p = Font(name='宋体', bold=True, size=16)
+font14 = Font(name='宋体', bold=False, size=14)
+font16 = Font(name='宋体', bold=False, size=16)
 font8 = Font(name='宋体', bold=False, size=8)
+
+
+font12b = Font(name='宋体', bold=True, size=12)
+font14b = Font(name='宋体', bold=True, size=14)
+font16b = Font(name='宋体', bold=True, size=16)
+font8b = Font(name='宋体', bold=True, size=8)
+
+

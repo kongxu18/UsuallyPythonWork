@@ -2,7 +2,7 @@ import pymssql
 import pandas as pd
 
 
-class Data(object):
+class SqlData(object):
     def __init__(self, sql):
         self.sql = sql
         self.__data = None
@@ -25,7 +25,7 @@ class Data(object):
             self.__data = df
             
         except Exception as err:
-            print(err)
+            raise ValueError('sql 交互出现问题：',str(err))
 
     @property
     def data(self):
