@@ -1,0 +1,28 @@
+from openpyxl.styles import Font, Border, Side, Alignment, PatternFill, colors
+
+border_style = Border(left=Side(border_style='thin', color='000000'),
+                      right=Side(border_style='thin', color='000000'),
+                      top=Side(border_style='thin', color='000000'),
+                      bottom=Side(border_style='thin', color='000000'))
+
+border_style2 = Border(left=Side(border_style='thin', color='000000'),
+                       right=Side(border_style='thin', color='000000'),
+                       top=Side(border_style='thin', color='000000'),
+                       bottom=Side(border_style='thin', color='000000'),
+                       diagonal=Side(border_style='thin', color='000000'),
+                       diagonalUp=False, diagonalDown=True)
+
+alignment_center = Alignment(horizontal='center', vertical='center', wrapText=True)
+alignment_left = Alignment(horizontal='left', vertical='center', wrapText=True)
+alignment_justify = Alignment(horizontal='justify', vertical='justify', wrap_text=True)
+fill_red = PatternFill(fill_type="solid", fgColor="EE292B")
+fill_green = PatternFill(fill_type="solid", fgColor="7FCA40")
+fill_yellow = PatternFill(fill_type="solid", fgColor='EAC121')
+fill_gray = PatternFill(fill_type="solid", fgColor='A6A6A6')
+fill_blue = PatternFill(fill_type="solid", fgColor='8DB4E2')
+
+font14 = Font(name='宋体', bold=False, size=14)
+font12 = Font(name='宋体', bold=False, size=12)
+font14p = Font(name='宋体', bold=True, size=14)
+font16p = Font(name='宋体', bold=True, size=16)
+font8 = Font(name='宋体', bold=False, size=8)
