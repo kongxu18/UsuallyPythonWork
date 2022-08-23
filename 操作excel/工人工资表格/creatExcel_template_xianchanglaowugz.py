@@ -10,6 +10,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter, column_index_from_string
 from 操作excel.excelApi.style import *
 from copy import copy
+import re
 
 
 class SqlData(object):
@@ -71,6 +72,8 @@ class DataDeal(object):
         拆分 日期增加 日子列
         """
         self.df['month'] = self.df['考勤日期'].astype('str').str.split('-').str.get(1).astype('int')
+        self.df['year'] = self.df['考勤日期'].astype('str').str.split('-').str.get(0).astype('int')
+        self.df['day'] = self.df['考勤日期'].astype('str').str.split('-').str.get(2).astype('int')
 
     def group_by_team(self):
         group: pd.DataFrame = self.df.groupby(['班组名称'])
@@ -113,6 +116,21 @@ class Clone(object):
         self._model_sheet = None
         self.start_row = 1
         self.start_col = 1
+        self._workbook = None
+        self.load()
+        self.model_sheetNames = ['one', 'two', 'empty']
+
+    def load(self):
+        try:
+            wb = load_workbook(self.model_path)
+            self._workbook = wb
+        except Exception as err:
+            self._workbook = None
+        return self._workbook
+
+    @property
+    def workbook(self):
+        return self._workbook
 
     @property
     def model_sheet(self):
@@ -121,10 +139,8 @@ class Clone(object):
     @model_sheet.setter
     def model_sheet(self, sheetName):
         try:
-            wb = load_workbook(self.model_path)
-            sheet = wb[sheetName]
+            sheet = self.workbook[sheetName]
             self._model_sheet = sheet
-
         except Exception as err:
             self._model_sheet = None
 
@@ -141,6 +157,38 @@ class Clone(object):
             dstCell.protection = copy(srcCell.protection)
             dstCell.alignment = copy(srcCell.alignment)
 
+    def get_merge_info(self):
+        return self.model_sheet.merged_cells
+
+    @staticmethod
+    def letter_to_num(p):
+        """
+        传入 A1 输出 （1，1）
+        """
+        # pattern = re.compile(r'(\D*)(\d*)')
+
+        letter = re.findall('(\D+)(\d+)', p)[0]
+        col = column_index_from_string(letter[0])
+        row = int(letter[1])
+        return row, col
+
+    def deal_merge_info(self, sheet, offset):
+        """
+        模板从（1，1）开始
+        """
+        info = self.get_merge_info()
+        row_off = offset[0] - 1
+        col_off = offset[1] - 1
+        for _ in info:
+            m_li = str(_).split(':')
+            # 获取点的坐标，对点进行实际的偏移计算
+            p1, p2 = self.letter_to_num(m_li[0]), self.letter_to_num(m_li[1])
+
+            p1 = p1[0] + row_off, p1[1] + col_off
+            p2 = p2[0] + row_off, p2[1] + col_off
+            # print(p1, p2)
+            sheet.merge_cells(start_row=p1[0], start_column=p1[1], end_row=p2[0], end_column=p2[1])
+
     def clone(self, rc_range, dst_sheet):
         """
         rc_range 目标sheet 的 范围
@@ -155,17 +203,18 @@ class Clone(object):
         for row in range(self.start_row, row_e - row_s + 2):
             # 行高
             # print(self.model_sheet.row_dimensions[row].height)
-            dst_sheet.row_dimensions[row_s + row - 1].height = self.model_sheet.row_dimensions[row].height
+            dst_sheet.row_dimensions[row_s + row - 1].height = copy(self.model_sheet.row_dimensions[row].height)
 
             for col in range(self.start_col, col_e - col_s + 2):
-                if row == 1:
-                    dst_sheet.column_dimensions[get_column_letter(col_s + col - 1)].width = \
-                        self.model_sheet.column_dimensions[get_column_letter(col)].width
-                    print(self.model_sheet.column_dimensions['B'].width, get_column_letter(col))
-
                 src_cell = self.model_sheet.cell(row=row, column=col)
                 dst_cell = dst_sheet.cell(row=row_s + row - 1, column=col_s + col - 1)
                 self.cloneCell(src_cell, dst_cell)
+
+        self.deal_merge_info(dst_sheet, rc_range[0])
+
+    def del_model_sheets(self):
+        for name in self.model_sheetNames:
+            self.workbook.remove(self.workbook[name])
 
 
 def clone_header(c, dst_sheet, loc_row):
@@ -183,42 +232,119 @@ def clone_header(c, dst_sheet, loc_row):
     c.model_sheet = 'one'
     c.clone(rc_range, dst_sheet)
 
-    return loc_row + 3
+    return loc_row + 4
 
 
-def clone_footer():
+def clone_footer(c, dst_sheet, loc_row):
     ...
-    return 2
+    p1 = (loc_row, 1)
+    p2 = (loc_row + 3, 35)
+
+    rc_range = [p1, p2]
+
+    # 在克隆前，选择需要克隆的sheet
+    c.model_sheet = 'two'
+    c.clone(rc_range, dst_sheet)
+
+    return loc_row + 4
 
 
-def create_table(projectName, month, loc_row, dataframe, dst_sheet, model_path):
-    c = Clone(model_path)
-    clone_header(c, dst_sheet, loc_row)
-    # row_index = clone_header(loc_row)
+def create_table(projectName, month_word, loc_row, dataframe, cloneObj, dst_sheet):
+    loc_row = clone_header(cloneObj, dst_sheet, loc_row)
+    cell_project = dst_sheet.cell(row=loc_row - 3, column=2, value=projectName)
+    cell_month_word = dst_sheet.cell(row=loc_row - 3, column=29, value=month_word)
     # write_body
+    # ----------------------------------
+    row_i = loc_row
+    group_name = dataframe.groupby('工人姓名')
+    for name, df_month in group_name:
+        cell_c1 = dst_sheet.cell(row=row_i, column=1, value=name)
+        set_style(cell_c1)
+        dst_sheet.row_dimensions[row_i].height = 20
 
-    row_index = clone_footer()
+        time_sum = (df_month['工人工日'] * 100).sum() / 100
+        price = df_month.loc[:, '工日单价'].iloc[0]
+        total_price = df_month['劳务费小计'].sum()
+
+        cell_AG = dst_sheet.cell(row=row_i, column=33, value=time_sum)
+        set_style(cell_AG)
+
+        cell_AH = dst_sheet.cell(row=row_i, column=34, value=price)
+        set_style(cell_AH)
+
+        cell_AI = dst_sheet.cell(row=row_i, column=35, value=total_price)
+        set_style(cell_AI)
+
+        # print(df_month)
+        # 遍历工人数据
+        for day in range(1, 32):
+            working_time = None
+            res = df_month[df_month['day'] == day]['工人工日']
+
+            working_time = res.iloc[0] if not res.empty else '/'
+
+            cell_day = dst_sheet.cell(row=row_i, column=day + 1, value=working_time)
+            set_style(cell_day)
+
+        row_i += 1
+
+    # 按照每日统计
+    dst_sheet.row_dimensions[row_i].height = 20
+    table_sumDay = dataframe.groupby(['day'])['工人工日'].sum().reset_index(name='sumday')
+    total_time = dataframe['工人工日'].sum()
+    total_money = dataframe['劳务费小计'].sum()
+
+    name_t = dst_sheet.cell(row=row_i, column=1, value='合计')
+    set_style(name_t)
+    cell_total_time = dst_sheet.cell(row=row_i, column=33, value=total_time)
+    cell_total_money = dst_sheet.cell(row=row_i, column=35, value=total_money)
+
+    set_style(cell_total_time)
+    set_style(cell_total_money)
+
+    for day in range(1, 32):
+        sum_day = None
+        search = table_sumDay[table_sumDay['day'] == day]['sumday']
+        sum_day = search.iloc[0] if not search.empty else 0
+
+        cell_total_day = dst_sheet.cell(row=row_i, column=day + 1, value=sum_day)
+
+        set_style(cell_total_day)
+
+    loc_row = row_i + 1
+    row_index = clone_footer(cloneObj, dst_sheet, loc_row)
+    return row_index
 
 
-def create_detail_tables(dst_sheet, df, model_path):
+def create_detail_tables(cloneObj, df, dst_sheet):
     month_group = df.groupby(['month'])
-    projectName = ...
+
     loc_row = 1
     for month, dataframe in month_group:
-        create_table(projectName, month, loc_row, dataframe, dst_sheet, model_path)
+        projectName = dataframe.iloc[0, 0]
+        year = dataframe.iloc[0, 12]
+
+        month_word = '月份:' + str(year) + '年' + str(month) + '月'
+
+        dataframe = dataframe.reset_index(drop=True)
+        offset_index = create_table(projectName, month_word, loc_row, dataframe, cloneObj, dst_sheet)
+        loc_row += offset_index + 5
 
 
-def create_model_sheets(wb, data_obj: DataDeal, model_path):
+def create_model_sheets(cloneObj, data_obj: DataDeal):
+    wb = cloneObj.workbook
     group = data_obj.group_by_team()
+
+    empty_sheet = wb['empty']
 
     for team, df in group:
         try:
             sheet = wb[team]
         except Exception as err:
-            sheet = wb.create_sheet(team)
+            sheet = wb.copy_worksheet(empty_sheet)
+            sheet.title = team
 
-        create_detail_tables(sheet, df, model_path)
-        break
+        create_detail_tables(cloneObj, df, sheet)
 
 
 def create_summary_sheet(wb, data_obj: DataDeal):
@@ -229,8 +355,8 @@ def create_summary_sheet(wb, data_obj: DataDeal):
     sum_money = data_obj.sum_money_by_team()
     total_money = data_obj.sum_money()
 
-    sheet = wb.active
-    sheet.title = '总汇'
+    sheet = wb.create_sheet('总汇')
+    # sheet.title = '总汇'
     sheet.column_dimensions['A'].width = 14
     sheet.column_dimensions['B'].width = 10
     sheet.column_dimensions['C'].width = 20
@@ -305,11 +431,17 @@ def create_summary_sheet(wb, data_obj: DataDeal):
 
 
 def create_excel(df, save_path, model_path):
-    wb = Workbook()
+    clone_excel = Clone(model_path)
+    wb = clone_excel.workbook
+
     data_obj = DataDeal(df)
 
+    # 使用模板的workbook
     create_summary_sheet(wb, data_obj)
-    create_model_sheets(wb, data_obj, model_path)
+
+    create_model_sheets(clone_excel, data_obj)
+    # 删除模板
+    clone_excel.del_model_sheets()
     wb.save(save_path)
 
 
