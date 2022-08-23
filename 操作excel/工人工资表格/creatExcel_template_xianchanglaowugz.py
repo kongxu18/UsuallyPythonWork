@@ -7,7 +7,9 @@ import json
 import pymssql
 import pandas as pd
 from openpyxl import Workbook, load_workbook
+from openpyxl.utils import get_column_letter, column_index_from_string
 from 操作excel.excelApi.style import *
+from copy import copy
 
 
 class SqlData(object):
@@ -33,7 +35,7 @@ class SqlData(object):
             self.__data = df
 
         except Exception as err:
-            raise ValueError('sql 交互出现问题：', str(err))
+            raise ValueError('err:', 'sql交互出现问题 ', str(err))
 
     @property
     def data(self):
@@ -71,9 +73,10 @@ class DataDeal(object):
         self.df['month'] = self.df['考勤日期'].astype('str').str.split('-').str.get(1).astype('int')
 
     def group_by_team(self):
-        """
-        按照班组统计
-        """
+        group: pd.DataFrame = self.df.groupby(['班组名称'])
+        return group
+
+    def sum_money_by_team_month(self):
         group: pd.DataFrame = self.df.groupby(['班组名称', 'month'])['劳务费小计'].sum().reset_index(name='sum')
         return group
 
@@ -94,16 +97,135 @@ class DataDeal(object):
 
 def get_color():
     while True:
-        yield fill_220
-        yield fill_blue
+        yield fill_浅粉
+        yield fill_浅蓝
 
 
-def create_summary_sheet(wb, data_obj):
+def set_style(cell):
+    cell.font = font10
+    cell.alignment = alignment_center
+    cell.border = border_style
+
+
+class Clone(object):
+    def __init__(self, model_path):
+        self.model_path = model_path
+        self._model_sheet = None
+        self.start_row = 1
+        self.start_col = 1
+
+    @property
+    def model_sheet(self):
+        return self._model_sheet
+
+    @model_sheet.setter
+    def model_sheet(self, sheetName):
+        try:
+            wb = load_workbook(self.model_path)
+            sheet = wb[sheetName]
+            self._model_sheet = sheet
+
+        except Exception as err:
+            self._model_sheet = None
+
+    @staticmethod
+    def cloneCell(srcCell, dstCell):
+        if srcCell == dstCell:
+            return
+        dstCell.value = srcCell.value
+        if srcCell.has_style:
+            dstCell.font = copy(srcCell.font)
+            dstCell.border = copy(srcCell.border)
+            dstCell.fill = copy(srcCell.fill)
+            dstCell.number_format = copy(srcCell.number_format)
+            dstCell.protection = copy(srcCell.protection)
+            dstCell.alignment = copy(srcCell.alignment)
+
+    def clone(self, rc_range, dst_sheet):
+        """
+        rc_range 目标sheet 的 范围
+        反推 模版的范围
+        从 模板 克隆内容到 目标sheet，定位通过左上角 row，col
+        """
+        # 对角线定位一个范围
+        row_s, col_s = rc_range[0]
+        row_e, col_e = rc_range[1]
+
+        # 从第一行开始，
+        for row in range(self.start_row, row_e - row_s + 2):
+            # 行高
+            # print(self.model_sheet.row_dimensions[row].height)
+            dst_sheet.row_dimensions[row_s + row - 1].height = self.model_sheet.row_dimensions[row].height
+
+            for col in range(self.start_col, col_e - col_s + 2):
+                if row == 1:
+                    dst_sheet.column_dimensions[get_column_letter(col_s + col - 1)].width = \
+                        self.model_sheet.column_dimensions[get_column_letter(col)].width
+                    print(self.model_sheet.column_dimensions['B'].width, get_column_letter(col))
+
+                src_cell = self.model_sheet.cell(row=row, column=col)
+                dst_cell = dst_sheet.cell(row=row_s + row - 1, column=col_s + col - 1)
+                self.cloneCell(src_cell, dst_cell)
+
+
+def clone_header(c, dst_sheet, loc_row):
+    """
+    header 表头的范围
+    """
+    # loc_row 起始的行数 ，默认的列为1
+    # 模板长度35 ， 高度4行
+    p1 = (loc_row, 1)
+    p2 = (loc_row + 3, 35)
+
+    rc_range = [p1, p2]
+
+    # 在克隆前，选择需要克隆的sheet
+    c.model_sheet = 'one'
+    c.clone(rc_range, dst_sheet)
+
+    return loc_row + 3
+
+
+def clone_footer():
     ...
+    return 2
 
 
-def create_model_sheets(wb, data_obj):
+def create_table(projectName, month, loc_row, dataframe, dst_sheet, model_path):
+    c = Clone(model_path)
+    clone_header(c, dst_sheet, loc_row)
+    # row_index = clone_header(loc_row)
+    # write_body
+
+    row_index = clone_footer()
+
+
+def create_detail_tables(dst_sheet, df, model_path):
+    month_group = df.groupby(['month'])
+    projectName = ...
+    loc_row = 1
+    for month, dataframe in month_group:
+        create_table(projectName, month, loc_row, dataframe, dst_sheet, model_path)
+
+
+def create_model_sheets(wb, data_obj: DataDeal, model_path):
     group = data_obj.group_by_team()
+
+    for team, df in group:
+        try:
+            sheet = wb[team]
+        except Exception as err:
+            sheet = wb.create_sheet(team)
+
+        create_detail_tables(sheet, df, model_path)
+        break
+
+
+def create_summary_sheet(wb, data_obj: DataDeal):
+    """
+    汇总
+    """
+    group = data_obj.sum_money_by_team_month()
     sum_money = data_obj.sum_money_by_team()
     total_money = data_obj.sum_money()
 
@@ -136,6 +258,7 @@ def create_model_sheets(wb, data_obj):
     # 填充颜色
     color_fun = get_color()
     color = color_fun.__next__()
+
     for i, row in group.iterrows():
 
         name = row['班组名称']
@@ -170,13 +293,13 @@ def create_model_sheets(wb, data_obj):
     # 最右侧添加一个总计
     cell = sheet.cell(row=1, column=5, value='总劳务费')
     cell.font = font14b
-    cell.fill = fill_blue
+    cell.fill = fill_棕黄色
     cell.alignment = alignment_center
     cell.border = border_style
 
     cell = sheet.cell(row=2, column=5, value=total_money)
     cell.font = font14b
-    cell.fill = fill_blue
+    cell.fill = fill_棕黄色
     cell.alignment = alignment_center
     cell.border = border_style
 
@@ -186,7 +309,7 @@ def create_excel(df, save_path, model_path):
     data_obj = DataDeal(df)
 
     create_summary_sheet(wb, data_obj)
-    create_model_sheets(wb, data_obj)
+    create_model_sheets(wb, data_obj, model_path)
     wb.save(save_path)
 
 
@@ -196,7 +319,7 @@ if __name__ == '__main__':
     argv = ['/Users/mac/Downloads/TridentSystem/scripts/python/creatExcel_template_xianchanglaowugz.py',
             'res.xlsx',
             't.json',
-            '/Users/mac/Downloads/TridentSystem/filedata/exceltemplate/xianchanglaowugz.xlsx']
+            'xianchanglaowugz.xlsx']
 
     excel_filePath = None
     json_filePath = None
@@ -232,6 +355,13 @@ if __name__ == '__main__':
     sql = "select  * from FT256D现场工人出勤统计('%s','%s','%s',%d,'%s','%s')" % (
         teamCode, companyCode, workerCode, projectCode, startTime, endTime)
 
-    data: pd.DataFrame = SqlData(sql).data
-
-    create_excel(data, excel_filePath, modelExcel_filePath)
+    # try:
+    d = SqlData(sql)
+    data: pd.DataFrame = d.data
+    if d.length > 0:
+        create_excel(data, excel_filePath, modelExcel_filePath)
+        print('OK', end='')
+    else:
+        print('')
+    # except Exception as err:
+    #     print('',err)
