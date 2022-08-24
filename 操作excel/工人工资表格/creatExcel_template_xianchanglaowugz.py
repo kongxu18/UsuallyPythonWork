@@ -24,11 +24,10 @@ class SqlData(object):
         # 创建连接对象
         try:
             conn = pymssql.connect(host='erp.highbird.cn', server='erp.highbird.cn', port='9155', user='nizihua',
-                                   password='13o84x',
+                                   password='',
                                    database='base1', charset='utf8')
 
             cursor = conn.cursor(as_dict=True)
-
             cursor.execute(self.sql)
             columns = [name[0] for name in cursor.description]
             df = pd.DataFrame(cursor.fetchall(), columns=columns)
@@ -482,18 +481,16 @@ if __name__ == '__main__':
             startTime = json_args.get('起始时间')
             endTime = json_args.get('结束时间')
 
-            print(projectCode, teamCode, workerCode, startTime, endTime)
-
     sql = "select  * from FT256D现场工人出勤统计('%s','%s','%s',%d,'%s','%s')" % (
         teamCode, companyCode, workerCode, projectCode, startTime, endTime)
 
-    # try:
-    d = SqlData(sql)
-    data: pd.DataFrame = d.data
-    if d.length > 0:
-        create_excel(data, excel_filePath, modelExcel_filePath)
-        print('OK', end='')
-    else:
-        print('')
-    # except Exception as err:
-    #     print('',err)
+    try:
+        d = SqlData(sql)
+        data: pd.DataFrame = d.data
+        if d.length > 0:
+            create_excel(data, excel_filePath, modelExcel_filePath)
+            print('OK', end='')
+        else:
+            print('')
+    except Exception as err:
+        print('', err)
