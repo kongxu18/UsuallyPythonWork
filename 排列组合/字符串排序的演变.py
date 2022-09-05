@@ -1,17 +1,20 @@
 def permutation(s):
-    c, res = list(s), []
+    c, res = s, []
 
     def recur(x):
         if x == len(c) - 1:
-            res.append(''.join(c))  # 添加排列方案
+            res.append(c)  # 添加排列方案
             return
         dic = set()
+
         for i in range(x, len(c)):
             if c[i] in dic:
                 continue
             dic.add(c[i])
+
             c[i], c[x] = c[x], c[i]
             recur(x + 1)
+
             c[i], c[x] = c[x], c[i]
 
     recur(0)
@@ -19,31 +22,6 @@ def permutation(s):
 
 
 import copy
-
-
-def calculate_add_combination(n):
-    res_list = []
-    tmp_list = []
-
-    def num_to_n(n, tmp_list, start):
-        if n == 1:
-            tmp = copy.deepcopy(tmp_list)
-            tmp.append(1)
-            res_list.append(tmp)
-        else:
-            for i in range(start, n):
-                tmp_list.append(i)
-                num_to_n(n - i, tmp_list, i)
-                tmp_list.remove(tmp_list[-1])
-
-            tmp = copy.deepcopy(tmp_list)
-            tmp.append(n)
-            res_list.append(tmp)
-
-    num_to_n(n, tmp_list, 1)
-    # duplicate remove
-    res_list = duplicate_remove(res_list, n)
-    return res_list
 
 
 def duplicate_remove(a_list, n):
@@ -114,6 +92,38 @@ def group(sorts, add_groups, original_data: list):
     return res
 
 
+def calculate_add_combination(n):
+    res_list = []
+    tmp_list = []
+
+    def num_to_n(n, tmp_list, start):
+        if n == 1:
+            tmp = copy.deepcopy(tmp_list)
+            tmp.append(1)
+            res_list.append(tmp)
+        else:
+            for i in range(start, n):
+                tmp_list.append(i)
+                num_to_n(n - i, tmp_list, i)
+                tmp_list.remove(tmp_list[-1])
+
+            tmp = copy.deepcopy(tmp_list)
+            tmp.append(n)
+            res_list.append(tmp)
+
+    num_to_n(n, tmp_list, 1)
+    # duplicate remove
+    res_list = duplicate_remove(res_list, n)
+    return res_list
+
+
+def fun(args):
+    group = calculate_add_combination(len(args))
+
+
+    print(add_group)
+
+
 if __name__ == '__main__':
     # 所有排序
     arg = ['a', 'b', 'c', 'd']
@@ -125,10 +135,13 @@ if __name__ == '__main__':
     add_group = calculate_add_combination(l)
     print(add_group)
 
-    final = group(all_sorts, add_group, arg)
+    # final = group(all_sorts, add_group, arg)
+    #
+    # print(final)
+    # print(len(final))
 
-    print(final)
-    print(len(final))
+    fun(arg)
 
-
-
+    t = ['a','b','cd']
+    t_ = permutation(t)
+    print(t_)
