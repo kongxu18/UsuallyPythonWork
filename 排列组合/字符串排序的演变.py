@@ -3,7 +3,7 @@ def permutation(s):
 
     def recur(x):
         if x == len(c) - 1:
-            res.append(c)  # 添加排列方案
+            res.append(''.join(c))  # 添加排列方案
             return
         dic = set()
 
@@ -117,31 +117,54 @@ def calculate_add_combination(n):
     return res_list
 
 
-def fun(args):
-    group = calculate_add_combination(len(args))
+def combinationSum(candidates, target):
+    # 对candidates进行排序
+    candidates.sort()
+    path = []
+    res = []
 
+    def backwards(start, sum, candidates):
+        # sum == target,将path添加到res中
+        if sum == target:
+            res.append(path[:])
+            return
+        # 剪枝
+        for i in range(start, len(candidates)):
+            cur = candidates[i]
+            if cur > 4:
+                continue
+            sum += cur
 
-    print(add_group)
+            # 剪枝
+            # 判断sum是否大于target，因为candidates是从小到大的，
+            # 若sum大于target，则不遍历序号i之后的值；
+            # 若sum小于target，将candidates[i]添加到path中，然后进行回溯
+            if sum <= target:
+                path.append(cur)
+                backwards(i, sum, candidates)
+                path.pop()
+                sum -= cur
+            else:
+                return
+
+    backwards(0, 0, candidates)
+    return res
 
 
 if __name__ == '__main__':
     # 所有排序
-    arg = ['a', 'b', 'c', 'd']
+    arg = ['a', 'b', 'c', 'd', 'e', 'f']
     all_sorts = permutation(arg)
     print(all_sorts)
 
-    l = len(arg)
-
-    add_group = calculate_add_combination(l)
+    l = [i for i in range(1, len(arg) + 1)]
+    add_group = combinationSum(l, len(arg))
     print(add_group)
 
-    # final = group(all_sorts, add_group, arg)
-    #
-    # print(final)
-    # print(len(final))
+    final = group(all_sorts, add_group, arg)
+    with open('t' + '.text', 'a+') as f:
+        for i in final:
+            f.write(str(i) + '\n')
 
-    fun(arg)
-
-    t = ['a','b','cd']
-    t_ = permutation(t)
-    print(t_)
+    print(final)
+    print(len(final))

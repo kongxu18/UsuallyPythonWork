@@ -1,6 +1,8 @@
 # 先得出数组所有子集
 # 通过递归的方式生成子集
 import copy
+import itertools
+import numpy as np
 
 
 class Solution(object):
@@ -69,14 +71,38 @@ class Solution(object):
         result = []
         result.append(child_list[1])
         result.append(child_list[len(self.arg)])
-        for group in add_list:
-            print(group)
-            if len(group) == len(self.arg) or len(group) == 1:
-                pass
+        for model in add_list:
+
+            if len(model) == len(self.arg) or len(model) == 1:
+                continue
             else:
-                ...
-        print(result)
-        #     ...
+                model_dic = {}
+                for m in model:
+                    if model_dic.get(m):
+                        model_dic[m] += 1
+                    else:
+                        model_dic[m] = 1
+                self.calculate_groups(model_dic, self.arg, child_list)
+            break
+
+    @staticmethod
+    def combinations(li, num):
+        res = np.array([])
+        for i in itertools.combinations(li, num):
+            arr = np.array(i)
+            arr = arr.reshape(-1)
+            res.insert()
+
+    def calculate_groups(self, model_dic, arg, child_list):
+
+        groups = []
+        for key, val in model_dic.items():
+            li = child_list[key]
+            num = val
+
+            groups.append(self.combinations(li,num))
+
+        print(len(groups))
 
 
 arg = ['a', 'b', 'c', 'd']
