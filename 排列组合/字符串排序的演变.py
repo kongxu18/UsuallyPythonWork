@@ -153,7 +153,7 @@ def combinationSum(candidates, target):
 
 if __name__ == '__main__':
     # 所有排序
-    arg = ['a', 'b', 'c', 'd', 'e', 'f']
+    arg = ['a', 'b', 'c', 'd', 'e', 'f','g']
     all_sorts = permutation(arg)
     print(all_sorts)
 

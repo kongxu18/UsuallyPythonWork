@@ -66,6 +66,7 @@ class Solution(object):
 
         print(child_list)
         print(add_list)
+        print([len(n) for n in add_list])
 
         # 结果集合
         result = []
@@ -91,21 +92,32 @@ class Solution(object):
         for i in itertools.combinations(li, num):
             arr = np.array(i)
             arr = arr.reshape(-1)
-            res.insert()
 
-    def calculate_groups(self, model_dic, arg, child_list):
-
+    def calculate_groups(self, model_dic, arr, child_list):
+        # 根据模式计算组合
         groups = []
-        for key, val in model_dic.items():
-            li = child_list[key]
-            num = val
+        print(model_dic, '模式')
 
-            groups.append(self.combinations(li,num))
+        # 原本的数组
+        init_choice = arr[:]
 
+        for number in range(4, 0, -1):
+            # 从 大 到 小 从4 到 1，可以降低笛卡尔乘机
+            times = model_dic.get(number)
+            if times:
+                li = child_list[number]
+                for i in itertools.combinations(init_choice, number):
+                    groups.append(i)
+            break
+
+        def back(groups, model_li):
+            ...
+
+        print(groups)
         print(len(groups))
 
 
-arg = ['a', 'b', 'c', 'd']
+arg = ['a', 'b', 'c', 'd', 'e']
 
 s = Solution(arg)
 r = s.deal()

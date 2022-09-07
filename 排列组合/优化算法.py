@@ -1,4 +1,5 @@
 import itertools
+from typing import List
 
 
 def combinationSum(candidates, target):
@@ -43,4 +44,24 @@ print(list(l))
 add_list = combinationSum([i for i in range(1, len(a) + 1)], len(a))
 print(add_list)
 
-def deal():
+#
+# add_list = combinationSum([i for i in range(1, 25)], 24)
+# print(add_list)
+#
+# add_list = combinationSum([i for i in range(1, 9)], 9)
+# print(add_list)
+#
+# add_list = combinationSum([i for i in range(1, 10)], 10)
+# print(add_list)
+
+
+def deal(add_list, arr):
+    add_list.sort(reverse=True)
+    need = arr[:]
+
+    for num in add_list:
+        ...
+
+
+
+deal(add_list[1], a)
