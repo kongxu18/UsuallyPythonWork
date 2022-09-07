@@ -3,6 +3,7 @@
 import copy
 import itertools
 import numpy as np
+from typing import List
 
 
 class Solution(object):
@@ -62,7 +63,7 @@ class Solution(object):
     def deal(self):
         child_list: dict = self.subsets(self.arg)
 
-        add_list = self.combinationSum(list(child_list.keys()), len(self.arg))
+        add_list: List[List] = self.combinationSum(list(child_list.keys()), len(self.arg))
 
         print(child_list)
         print(add_list)
@@ -77,13 +78,17 @@ class Solution(object):
             if len(model) == len(self.arg) or len(model) == 1:
                 continue
             else:
-                model_dic = {}
-                for m in model:
-                    if model_dic.get(m):
-                        model_dic[m] += 1
-                    else:
-                        model_dic[m] = 1
-                self.calculate_groups(model_dic, self.arg, child_list)
+                # model_dic = {}
+                # for m in model:
+                #     if model_dic.get(m):
+                #         model_dic[m] += 1
+                #     else:
+                #         model_dic[m] = 1
+
+                # 把model 进行反转
+                model.sort(reverse=True)
+
+                self.calculate_groups(model, self.arg, child_list)
             break
 
     @staticmethod
@@ -93,33 +98,63 @@ class Solution(object):
             arr = np.array(i)
             arr = arr.reshape(-1)
 
-    def calculate_groups(self, model_dic, arr, child_list):
+    def calculate_groups(self, model, arr, child_list):
         # 根据模式计算组合
         groups = []
-        print(model_dic, '模式')
+        print(model, '模式')
 
         # 原本的数组
-        init_choice = arr[:]
+        init_arr = set(arr[:])
 
-        for number in range(4, 0, -1):
-            # 从 大 到 小 从4 到 1，可以降低笛卡尔乘机
-            times = model_dic.get(number)
-            if times:
-                li = child_list[number]
-                for i in itertools.combinations(init_choice, number):
-                    groups.append(i)
-            break
+        # for number in range(4, 0, -1):
+        #     # 从 大 到 小 从4 到 1，可以降低笛卡尔乘机
+        #     times = model_dic.get(number)
+        #     if times:
+        #         li = child_list[number]
+        #         for i in itertools.combinations(init_choice, number):
+        #             groups.append(i)
+        #     break
+        if not groups:
+            for item in itertools.combinations(init_arr, model[0]):
+                groups.append({*item})
 
-        def back(groups, model_li):
-            ...
+        res = []
 
-        print(groups)
+        def back(groups, model, m_index):
+
+            temp = []
+            if m_index > len(model) - 1:
+                res[:] = groups
+                return
+
+            cur = model[m_index]
+            print(cur)
+
+            for i, now_set in enumerate(groups):
+
+                useful_arr = init_arr - now_set
+
+                for tup in itertools.combinations(useful_arr, cur):
+                    union_set = now_set|set(tup)
+                    temp.append(union_set)
+
+            m_index += 1
+
+
+            back(temp, model, m_index)
+
+        back(groups, model, 1)
+        print(groups, 'group')
         print(len(groups))
 
+        print(res)
 
-arg = ['a', 'b', 'c', 'd', 'e']
+arg = ['a', 'b', 'c','d']
 
 s = Solution(arg)
 r = s.deal()
 
-print(r)
+import pandas as pd
+
+a = pd.DataFrame([{1,2,3,4},[2,3,3,3]])
+print(a)
