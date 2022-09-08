@@ -82,19 +82,30 @@ class Solution(object):
                 two_dimensional_arr = self.calculate_groups(model, self.arg)
                 self.clear_dataframe(model, two_dimensional_arr)
 
-            break
-
     def clear_dataframe(self, model, arr):
         # 把二维数组根据模式转 成dataframe 并 去重
 
         df = pd.DataFrame(data=arr)
-        array = np.array(arr)
-        s_i = 0
-        # 直接对numpy 进行操作
-        for num in model:
-            ...
+        array = np.array(arr, dtype='str')
 
+        # clear_arr = np.char.add(array[:,[0,1]])
+
+        cursor = 0
+        name_dic = {1: 'one', 2: 'two', 3: 'three', 4: 'four'}
+        for num in model:
+            df[name_dic[num]] = df[cursor]
+
+            cursor += 1
+            for i in range(1,num):
+                df[name_dic[num]] += df[cursor]
+                cursor += 1
+            name_dic[num] += '1'
+
+        print(df.iloc[:,cursor:])
+
+        # print(clear_arr,'=-=-=-=-=-=-=')
         print(array)
+
 
     def calculate_groups(self, model, arr):
         # 根据模式计算组合
