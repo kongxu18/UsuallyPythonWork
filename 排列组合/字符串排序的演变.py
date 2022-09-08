@@ -39,6 +39,7 @@ def duplicate_remove(a_list, n):
 
 
 def clear_list(data):
+    print(data)
     new_data = []
     for i in range(len(data)):
         src = data[i]
@@ -153,7 +154,7 @@ def combinationSum(candidates, target):
 
 if __name__ == '__main__':
     # 所有排序
-    arg = ['a', 'b', 'c', 'd', 'e', 'f','g']
+    arg = ['a', 'b', 'c', 'd']
     all_sorts = permutation(arg)
     print(all_sorts)
 

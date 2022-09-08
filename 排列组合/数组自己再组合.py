@@ -4,6 +4,7 @@ import copy
 import itertools
 import numpy as np
 from typing import List
+import pandas as pd
 
 
 class Solution(object):
@@ -61,62 +62,50 @@ class Solution(object):
         return res
 
     def deal(self):
-        child_list: dict = self.subsets(self.arg)
+        # child_list: dict = self.subsets(self.arg)
 
-        add_list: List[List] = self.combinationSum(list(child_list.keys()), len(self.arg))
+        add_list: List[List] = self.combinationSum([num for num in range(1, len(self.arg) + 1)], len(self.arg))
 
-        print(child_list)
-        print(add_list)
-        print([len(n) for n in add_list])
+        print(add_list, '组成模式')
 
         # 结果集合
         result = []
-        result.append(child_list[1])
-        result.append(child_list[len(self.arg)])
+
         for model in add_list:
 
             if len(model) == len(self.arg) or len(model) == 1:
                 continue
             else:
-                # model_dic = {}
-                # for m in model:
-                #     if model_dic.get(m):
-                #         model_dic[m] += 1
-                #     else:
-                #         model_dic[m] = 1
-
                 # 把model 进行反转
                 model.sort(reverse=True)
 
-                self.calculate_groups(model, self.arg, child_list)
+                two_dimensional_arr = self.calculate_groups(model, self.arg)
+                self.clear_dataframe(model, two_dimensional_arr)
+
             break
 
-    @staticmethod
-    def combinations(li, num):
-        res = np.array([])
-        for i in itertools.combinations(li, num):
-            arr = np.array(i)
-            arr = arr.reshape(-1)
+    def clear_dataframe(self, model, arr):
+        # 把二维数组根据模式转 成dataframe 并 去重
 
-    def calculate_groups(self, model, arr, child_list):
+        df = pd.DataFrame(data=arr)
+        array = np.array(arr)
+        s_i = 0
+        # 直接对numpy 进行操作
+        for num in model:
+            ...
+
+        print(array)
+
+    def calculate_groups(self, model, arr):
         # 根据模式计算组合
         groups = []
         print(model, '模式')
 
         # 原本的数组
         init_arr = set(arr[:])
-
-        # for number in range(4, 0, -1):
-        #     # 从 大 到 小 从4 到 1，可以降低笛卡尔乘机
-        #     times = model_dic.get(number)
-        #     if times:
-        #         li = child_list[number]
-        #         for i in itertools.combinations(init_choice, number):
-        #             groups.append(i)
-        #     break
         if not groups:
             for item in itertools.combinations(init_arr, model[0]):
-                groups.append({*item})
+                groups.append([*item])
 
         res = []
 
@@ -128,33 +117,28 @@ class Solution(object):
                 return
 
             cur = model[m_index]
-            print(cur)
 
-            for i, now_set in enumerate(groups):
+            for i, now_arr in enumerate(groups):
+                turn_now_set = set(now_arr)
 
-                useful_arr = init_arr - now_set
+                useful_arr = init_arr - turn_now_set
 
                 for tup in itertools.combinations(useful_arr, cur):
-                    union_set = now_set|set(tup)
-                    temp.append(union_set)
+                    union_arr = now_arr + list(tup)
+
+                    temp.append(union_arr)
 
             m_index += 1
-
 
             back(temp, model, m_index)
 
         back(groups, model, 1)
-        print(groups, 'group')
-        print(len(groups))
 
         print(res)
+        return res
 
-arg = ['a', 'b', 'c','d']
+
+arg = ['a', 'b', 'c', 'd']
 
 s = Solution(arg)
 r = s.deal()
-
-import pandas as pd
-
-a = pd.DataFrame([{1,2,3,4},[2,3,3,3]])
-print(a)
